@@ -1,0 +1,296 @@
+--// SERVICES
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+--// SETTINGS
+local Settings = {
+	Purchase = false,
+	Plant = false,
+	Collect = false,
+	Sell = false,
+	BuyAll = false
+}
+
+--// GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoFarmUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 300, 0, 340)
+Main.Position = UDim2.new(0.5, -150, 0.5, -170)
+Main.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Main.BorderSizePixel = 0
+Main.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = Main
+
+--// TITLE BAR
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 50)
+TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = Main
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 10)
+TitleCorner.Parent = TitleBar
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 1, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "Auto Farm"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 24
+Title.Font = Enum.Font.GothamBold
+Title.Parent = TitleBar
+
+--// MOVABLE GUI
+local dragging = false
+local dragStart
+local startPosition
+
+TitleBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		dragStart = input.Position
+		startPosition = Main.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+		local delta = input.Position - dragStart
+
+		Main.Position = UDim2.new(
+			startPosition.X.Scale,
+			startPosition.X.Offset + delta.X,
+			startPosition.Y.Scale,
+			startPosition.Y.Offset + delta.Y
+		)
+	end
+end)
+
+--// BUTTON CREATOR
+local function CreateButton(text, position, setting)
+	local Button = Instance.new("TextButton")
+
+	Button.Size = UDim2.new(0, 260, 0, 45)
+	Button.Position = position
+	Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+	Button.BorderSizePixel = 0
+	Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Button.TextSize = 16
+	Button.Font = Enum.Font.GothamBold
+	Button.Text = text .. ": OFF"
+	Button.Parent = Main
+
+	local ButtonCorner = Instance.new("UICorner")
+	ButtonCorner.CornerRadius = UDim.new(0, 8)
+	ButtonCorner.Parent = Button
+
+	Button.MouseButton1Click:Connect(function()
+		Settings[setting] = not Settings[setting]
+
+		if Settings[setting] then
+			Button.Text = text .. ": ON"
+			Button.BackgroundColor3 = Color3.fromRGB(50, 150, 75)
+		else
+			Button.Text = text .. ": OFF"
+			Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+		end
+	end)
+
+	return Button
+end
+
+--// BUTTONS
+CreateButton(
+	"Purchase Dice + Seeds",
+	UDim2.new(0, 20, 0, 60),
+	"Purchase"
+)
+
+CreateButton(
+	"Plant Seeds",
+	UDim2.new(0, 20, 0, 115),
+	"Plant"
+)
+
+CreateButton(
+	"Collect Plants",
+	UDim2.new(0, 20, 0, 170),
+	"Collect"
+)
+
+CreateButton(
+	"Sell Fruit",
+	UDim2.new(0, 20, 0, 225),
+	"Sell"
+)
+
+CreateButton(
+	"Buy All Items",
+	UDim2.new(0, 20, 0, 280),
+	"BuyAll"
+)
+
+--// PURCHASE DICE + SEEDS
+task.spawn(function()
+	while true do
+
+		if Settings.Purchase then
+
+			-- Dice
+			for _, option in ipairs({
+				"Option1",
+				"Option2",
+				"Option3",
+				"Option4"
+			}) do
+
+				if not Settings.Purchase then
+					break
+				end
+
+				Remotes
+					:WaitForChild("PurchaseDice")
+					:FireServer(option)
+
+				task.wait(1)
+			end
+
+			-- Seeds
+			for _, option in ipairs({
+				"Option1",
+				"Option2",
+				"Option3",
+				"Option4",
+				"Option5",
+				"Option6"
+			}) do
+
+				if not Settings.Purchase then
+					break
+				end
+
+				Remotes
+					:WaitForChild("PurchaseSeed")
+					:FireServer(option)
+
+				task.wait(1)
+			end
+		end
+
+		task.wait(0.1)
+	end
+end)
+
+--// PLANT SEEDS
+task.spawn(function()
+	while true do
+
+		if Settings.Plant then
+
+			local seeds = {
+				"Epic Seed",
+				"Ultra Seed",
+				"Insane Seed",
+				"Divine Seed"
+			}
+
+			for _, seed in ipairs(seeds) do
+
+				for i = 1, 9 do
+
+					if not Settings.Plant then
+						break
+					end
+
+					Remotes
+						:WaitForChild("PlantSeed")
+						:FireServer(
+							seed,
+							"Plant" .. i
+						)
+
+					task.wait(1)
+				end
+
+				if not Settings.Plant then
+					break
+				end
+			end
+		end
+
+		task.wait(0.1)
+	end
+end)
+
+--// COLLECT PLANTS
+task.spawn(function()
+	while true do
+
+		if Settings.Collect then
+
+			for i = 1, 9 do
+
+				if not Settings.Collect then
+					break
+				end
+
+				Remotes
+					:WaitForChild("CollectPlant")
+					:FireServer(
+						"Plant" .. i
+					)
+
+				task.wait(1)
+			end
+		end
+
+		task.wait(0.1)
+	end
+end)
+
+--// SELL FRUIT EVERY 30 SECONDS
+task.spawn(function()
+	while true do
+
+		if Settings.Sell then
+			Remotes
+				:WaitForChild("SellFruit")
+				:FireServer("All")
+		end
+
+		task.wait(30)
+	end
+end)
+
+--// BUY ALL ITEMS EVERY 30 SECONDS
+task.spawn(function()
+	while true do
+
+		if Settings.BuyAll then
+			Remotes
+				:WaitForChild("BuyAllItems")
+				:FireServer()
+		end
+
+		task.wait(30)
+	end
+end)
