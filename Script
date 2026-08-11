@@ -53,7 +53,7 @@ Title.TextSize = 24
 Title.Font = Enum.Font.GothamBold
 Title.Parent = TitleBar
 
---// MOVABLE GUI
+--// DRAGGABLE
 local dragging = false
 local dragStart
 local startPosition
@@ -99,9 +99,9 @@ local function CreateButton(text, position, setting)
 	Button.Text = text .. ": OFF"
 	Button.Parent = Main
 
-	local ButtonCorner = Instance.new("UICorner")
-	ButtonCorner.CornerRadius = UDim.new(0, 8)
-	ButtonCorner.Parent = Button
+	local Corner = Instance.new("UICorner")
+	Corner.CornerRadius = UDim.new(0, 8)
+	Corner.Parent = Button
 
 	Button.MouseButton1Click:Connect(function()
 		Settings[setting] = not Settings[setting]
@@ -114,40 +114,14 @@ local function CreateButton(text, position, setting)
 			Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 		end
 	end)
-
-	return Button
 end
 
 --// BUTTONS
-CreateButton(
-	"Purchase Dice + Seeds",
-	UDim2.new(0, 20, 0, 60),
-	"Purchase"
-)
-
-CreateButton(
-	"Plant Seeds",
-	UDim2.new(0, 20, 0, 115),
-	"Plant"
-)
-
-CreateButton(
-	"Collect Plants",
-	UDim2.new(0, 20, 0, 170),
-	"Collect"
-)
-
-CreateButton(
-	"Sell Fruit",
-	UDim2.new(0, 20, 0, 225),
-	"Sell"
-)
-
-CreateButton(
-	"Buy All Items",
-	UDim2.new(0, 20, 0, 280),
-	"BuyAll"
-)
+CreateButton("Purchase Dice + Seeds", UDim2.new(0, 20, 0, 60), "Purchase")
+CreateButton("Plant Seeds", UDim2.new(0, 20, 0, 115), "Plant")
+CreateButton("Collect Plants", UDim2.new(0, 20, 0, 170), "Collect")
+CreateButton("Sell Fruit", UDim2.new(0, 20, 0, 225), "Sell")
+CreateButton("Buy All Items", UDim2.new(0, 20, 0, 280), "BuyAll")
 
 --// PURCHASE DICE + SEEDS
 task.spawn(function()
@@ -155,7 +129,7 @@ task.spawn(function()
 
 		if Settings.Purchase then
 
-			-- Dice
+			-- Purchase dice
 			for _, option in ipairs({
 				"Option1",
 				"Option2",
@@ -167,14 +141,18 @@ task.spawn(function()
 					break
 				end
 
-				Remotes
-					:WaitForChild("PurchaseDice")
-					:FireServer(option)
+				local success, err = pcall(function()
+					Remotes:WaitForChild("PurchaseDice"):FireServer(option)
+				end)
+
+				if not success then
+					warn("PurchaseDice error:", err)
+				end
 
 				task.wait(1)
 			end
 
-			-- Seeds
+			-- Purchase seeds
 			for _, option in ipairs({
 				"Option1",
 				"Option2",
@@ -188,9 +166,13 @@ task.spawn(function()
 					break
 				end
 
-				Remotes
-					:WaitForChild("PurchaseSeed")
-					:FireServer(option)
+				local success, err = pcall(function()
+					Remotes:WaitForChild("PurchaseSeed"):FireServer(option)
+				end)
+
+				if not success then
+					warn("PurchaseSeed error:", err)
+				end
 
 				task.wait(1)
 			end
@@ -215,24 +197,30 @@ task.spawn(function()
 
 			for _, seed in ipairs(seeds) do
 
+				if not Settings.Plant then
+					break
+				end
+
 				for i = 1, 9 do
 
 					if not Settings.Plant then
 						break
 					end
 
-					Remotes
-						:WaitForChild("PlantSeed")
-						:FireServer(
+					local plantName = "Plant" .. i
+
+					local success, err = pcall(function()
+						Remotes:WaitForChild("PlantSeed"):FireServer(
 							seed,
-							"Plant" .. i
+							plantName
 						)
+					end)
+
+					if not success then
+						warn("PlantSeed error:", err)
+					end
 
 					task.wait(1)
-				end
-
-				if not Settings.Plant then
-					break
 				end
 			end
 		end
@@ -253,11 +241,17 @@ task.spawn(function()
 					break
 				end
 
-				Remotes
-					:WaitForChild("CollectPlant")
-					:FireServer(
-						"Plant" .. i
+				local plantName = "Plant" .. i
+
+				local success, err = pcall(function()
+					Remotes:WaitForChild("CollectPlant"):FireServer(
+						plantName
 					)
+				end)
+
+				if not success then
+					warn("CollectPlant error:", err)
+				end
 
 				task.wait(1)
 			end
@@ -267,28 +261,38 @@ task.spawn(function()
 	end
 end)
 
---// SELL FRUIT EVERY 30 SECONDS
+--// SELL FRUIT
 task.spawn(function()
 	while true do
 
 		if Settings.Sell then
-			Remotes
-				:WaitForChild("SellFruit")
-				:FireServer("All")
+
+			local success, err = pcall(function()
+				Remotes:WaitForChild("SellFruit"):FireServer("All")
+			end)
+
+			if not success then
+				warn("SellFruit error:", err)
+			end
 		end
 
 		task.wait(30)
 	end
 end)
 
---// BUY ALL ITEMS EVERY 30 SECONDS
+--// BUY ALL ITEMS
 task.spawn(function()
 	while true do
 
 		if Settings.BuyAll then
-			Remotes
-				:WaitForChild("BuyAllItems")
-				:FireServer()
+
+			local success, err = pcall(function()
+				Remotes:WaitForChild("BuyAllItems"):FireServer()
+			end)
+
+			if not success then
+				warn("BuyAllItems error:", err)
+			end
 		end
 
 		task.wait(30)
