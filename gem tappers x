@@ -1,4 +1,13 @@
 --// =========================================================
+--// CLEAN UP PREVIOUS OPTIMIZED VERSION
+--// =========================================================
+
+if _G.__AUTO_FARM_CLEANUP then
+    pcall(_G.__AUTO_FARM_CLEANUP)
+end
+
+
+--// =========================================================
 --// SERVICES
 --// =========================================================
 
@@ -15,15 +24,87 @@ local Events = ReplicatedStorage:WaitForChild("Events")
 
 
 --// =========================================================
+--// SETTINGS
+--// =========================================================
+
+local Settings = {
+    Auras = false,
+    Merchant = false,
+    Hatch = false,
+    AutoTap = false,
+    AutoQuests = false
+}
+
+local alive = true
+local Connections = {}
+local ScreenGui
+
+
+--// =========================================================
+--// CONNECTION TRACKING / CLEANUP
+--// =========================================================
+
+local function trackConnection(connection)
+    Connections[#Connections + 1] = connection
+    return connection
+end
+
+
+local function cleanup()
+
+    if not alive then
+        return
+    end
+
+    alive = false
+
+    Settings.Auras = false
+    Settings.Merchant = false
+    Settings.Hatch = false
+    Settings.AutoTap = false
+    Settings.AutoQuests = false
+
+    for _, connection in ipairs(Connections) do
+
+        pcall(function()
+            connection:Disconnect()
+        end)
+
+    end
+
+    table.clear(Connections)
+
+    if ScreenGui and ScreenGui.Parent then
+        ScreenGui:Destroy()
+    end
+
+    if _G.__AUTO_FARM_CLEANUP == cleanup then
+        _G.__AUTO_FARM_CLEANUP = nil
+    end
+end
+
+
+_G.__AUTO_FARM_CLEANUP = cleanup
+
+
+--// =========================================================
 --// ANTI AFK
 --// =========================================================
 
-Player.Idled:Connect(function()
-    pcall(function()
-        VirtualUser:CaptureController()
-        VirtualUser:ClickButton2(Vector2.new(0, 0))
+trackConnection(
+    Player.Idled:Connect(function()
+
+        pcall(function()
+
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(
+                Vector2.new(0, 0)
+            )
+
+        end)
+
     end)
-end)
+)
 
 
 --// =========================================================
@@ -42,19 +123,6 @@ local ReplicaController = require(
         :WaitForChild("Libraries")
         :WaitForChild("ReplicaController")
 )
-
-
---// =========================================================
---// SETTINGS
---// =========================================================
-
-local Settings = {
-    Auras = false,
-    Merchant = false,
-    Hatch = false,
-    AutoTap = false,
-    AutoQuests = false
-}
 
 
 --// =========================================================
@@ -82,12 +150,17 @@ local Eggs = {
 
 
 --// =========================================================
---// QUEST EGG SETTINGS
+--// AUTO QUEST EGGS
 --// =========================================================
 
-local NORMAL_EGG = "Magic"
-local ETERNAL_EGG = "City"
+-- Hatch X Secret Pets
 local SECRET_EGG = "Basic"
+
+-- Hatch X Eternal Pets
+local ETERNAL_EGG = "City"
+
+-- Open X Eggs
+local NORMAL_EGG = "Magic"
 
 
 --// =========================================================
@@ -152,23 +225,29 @@ local PotionIndex = 1
 
 
 --// =========================================================
---// AUTO QUEST CONFIG
+--// TIMINGS
 --// =========================================================
 
-local QUEST_ACTION_DELAY = 0.15
-local CRAFT_DELAY = 1
+local NORMAL_HATCH_DELAY = 0.10
 
-local LastGoldCraft = 0
-local LastRainbowCraft = 0
+local QUEST_HATCH_DELAY = 0.15
+local QUEST_ITEM_DELAY = 0.15
+local QUEST_CRATE_DELAY = 0.15
+local QUEST_AURA_DELAY = 1
+local QUEST_CRAFT_DELAY = 1
 
-local ActionBusy = {}
+local QUEST_SCAN_DELAY = 0.25
+
+-- When features are OFF they barely wake up.
+local IDLE_DELAY = 1
 
 
 --// =========================================================
 --// REMOVE OLD GUI
 --// =========================================================
 
-local oldGui = PlayerGui:FindFirstChild("AutoFarmGui")
+local oldGui =
+    PlayerGui:FindFirstChild("AutoFarmGui")
 
 if oldGui then
     oldGui:Destroy()
@@ -176,31 +255,37 @@ end
 
 
 --// =========================================================
---// SCREEN GUI
+--// GUI
 --// =========================================================
 
-local ScreenGui = Instance.new("ScreenGui")
-
+ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "AutoFarmGui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
 
---// =========================================================
---// MAIN FRAME
---// =========================================================
-
 local Main = Instance.new("Frame")
 
-Main.Size = UDim2.new(0, 260, 0, 340)
-Main.Position = UDim2.new(0.5, -130, 0.5, -170)
-Main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Main.Size =
+    UDim2.new(0, 260, 0, 340)
+
+Main.Position =
+    UDim2.new(0.5, -130, 0.5, -170)
+
+Main.BackgroundColor3 =
+    Color3.fromRGB(30, 30, 30)
+
 Main.BorderSizePixel = 0
 Main.Active = true
 Main.Parent = ScreenGui
 
-local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 10)
+
+local MainCorner =
+    Instance.new("UICorner")
+
+MainCorner.CornerRadius =
+    UDim.new(0, 10)
+
 MainCorner.Parent = Main
 
 
@@ -208,63 +293,91 @@ MainCorner.Parent = Main
 --// TITLE BAR
 --// =========================================================
 
-local TitleBar = Instance.new("Frame")
+local TitleBar =
+    Instance.new("Frame")
 
-TitleBar.Size = UDim2.new(1, 0, 0, 40)
-TitleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+TitleBar.Size =
+    UDim2.new(1, 0, 0, 40)
+
+TitleBar.BackgroundColor3 =
+    Color3.fromRGB(45, 45, 45)
+
 TitleBar.BorderSizePixel = 0
 TitleBar.Active = true
 TitleBar.Parent = Main
 
-local TitleCorner = Instance.new("UICorner")
-TitleCorner.CornerRadius = UDim.new(0, 10)
+
+local TitleCorner =
+    Instance.new("UICorner")
+
+TitleCorner.CornerRadius =
+    UDim.new(0, 10)
+
 TitleCorner.Parent = TitleBar
 
 
-local Title = Instance.new("TextLabel")
+local Title =
+    Instance.new("TextLabel")
 
-Title.Size = UDim2.new(1, -50, 1, 0)
-Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Size =
+    UDim2.new(1, -50, 1, 0)
+
+Title.Position =
+    UDim2.new(0, 10, 0, 0)
+
 Title.BackgroundTransparency = 1
+
 Title.Text = "Auto Farm"
-Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
 Title.TextSize = 20
 Title.Font = Enum.Font.GothamBold
-Title.TextXAlignment = Enum.TextXAlignment.Left
+
+Title.TextXAlignment =
+    Enum.TextXAlignment.Left
+
 Title.Parent = TitleBar
 
 
 --// =========================================================
---// CLOSE BUTTON
+--// CLOSE
 --// =========================================================
 
-local Close = Instance.new("TextButton")
+local Close =
+    Instance.new("TextButton")
 
-Close.Size = UDim2.new(0, 30, 0, 30)
-Close.Position = UDim2.new(1, -35, 0, 5)
-Close.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+Close.Size =
+    UDim2.new(0, 30, 0, 30)
+
+Close.Position =
+    UDim2.new(1, -35, 0, 5)
+
+Close.BackgroundColor3 =
+    Color3.fromRGB(180, 60, 60)
+
 Close.Text = "X"
-Close.TextColor3 = Color3.fromRGB(255, 255, 255)
+Close.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
 Close.Font = Enum.Font.GothamBold
 Close.TextSize = 16
+
 Close.BorderSizePixel = 0
 Close.Parent = TitleBar
 
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 6)
+
+local CloseCorner =
+    Instance.new("UICorner")
+
+CloseCorner.CornerRadius =
+    UDim.new(0, 6)
+
 CloseCorner.Parent = Close
 
 
 Close.MouseButton1Click:Connect(function()
-
-    Settings.Auras = false
-    Settings.Merchant = false
-    Settings.Hatch = false
-    Settings.AutoTap = false
-    Settings.AutoQuests = false
-
-    ScreenGui:Destroy()
-
+    cleanup()
 end)
 
 
@@ -279,8 +392,10 @@ local startPosition
 
 TitleBar.InputBegan:Connect(function(input)
 
-    if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
+    if input.UserInputType ==
+        Enum.UserInputType.MouseButton1
+        or input.UserInputType ==
+        Enum.UserInputType.Touch then
 
         dragging = true
         dragStart = input.Position
@@ -288,8 +403,11 @@ TitleBar.InputBegan:Connect(function(input)
 
         input.Changed:Connect(function()
 
-            if input.UserInputState == Enum.UserInputState.End then
+            if input.UserInputState ==
+                Enum.UserInputState.End then
+
                 dragging = false
+
             end
 
         end)
@@ -299,48 +417,79 @@ TitleBar.InputBegan:Connect(function(input)
 end)
 
 
-UserInputService.InputChanged:Connect(function(input)
+trackConnection(
+    UserInputService.InputChanged:Connect(function(input)
 
-    if dragging and (
-        input.UserInputType == Enum.UserInputType.MouseMovement
-        or input.UserInputType == Enum.UserInputType.Touch
-    ) then
+        if not dragging then
+            return
+        end
 
-        local delta = input.Position - dragStart
+        if input.UserInputType ~=
+            Enum.UserInputType.MouseMovement
+            and input.UserInputType ~=
+            Enum.UserInputType.Touch then
 
-        Main.Position = UDim2.new(
-            startPosition.X.Scale,
-            startPosition.X.Offset + delta.X,
-            startPosition.Y.Scale,
-            startPosition.Y.Offset + delta.Y
-        )
+            return
 
-    end
+        end
 
-end)
+        local delta =
+            input.Position - dragStart
+
+        Main.Position =
+            UDim2.new(
+                startPosition.X.Scale,
+                startPosition.X.Offset + delta.X,
+
+                startPosition.Y.Scale,
+                startPosition.Y.Offset + delta.Y
+            )
+
+    end)
+)
 
 
 --// =========================================================
 --// TOGGLE CREATOR
 --// =========================================================
 
-local function createToggle(name, yPosition, settingName)
+local function createToggle(
+    name,
+    yPosition,
+    settingName
+)
 
-    local Button = Instance.new("TextButton")
+    local Button =
+        Instance.new("TextButton")
 
-    Button.Size = UDim2.new(1, -30, 0, 45)
-    Button.Position = UDim2.new(0, 15, 0, yPosition)
-    Button.BackgroundColor3 = Color3.fromRGB(150, 55, 55)
+    Button.Size =
+        UDim2.new(1, -30, 0, 45)
 
-    Button.Text = name .. ": OFF"
-    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.Position =
+        UDim2.new(0, 15, 0, yPosition)
+
+    Button.BackgroundColor3 =
+        Color3.fromRGB(150, 55, 55)
+
+    Button.Text =
+        name .. ": OFF"
+
+    Button.TextColor3 =
+        Color3.fromRGB(255, 255, 255)
+
     Button.TextSize = 16
     Button.Font = Enum.Font.GothamBold
     Button.BorderSizePixel = 0
+
     Button.Parent = Main
 
-    local Corner = Instance.new("UICorner")
-    Corner.CornerRadius = UDim.new(0, 8)
+
+    local Corner =
+        Instance.new("UICorner")
+
+    Corner.CornerRadius =
+        UDim.new(0, 8)
+
     Corner.Parent = Button
 
 
@@ -355,7 +504,11 @@ local function createToggle(name, yPosition, settingName)
                 name .. ": ON"
 
             Button.BackgroundColor3 =
-                Color3.fromRGB(55, 150, 75)
+                Color3.fromRGB(
+                    55,
+                    150,
+                    75
+                )
 
         else
 
@@ -363,11 +516,16 @@ local function createToggle(name, yPosition, settingName)
                 name .. ": OFF"
 
             Button.BackgroundColor3 =
-                Color3.fromRGB(150, 55, 55)
+                Color3.fromRGB(
+                    150,
+                    55,
+                    55
+                )
 
         end
 
     end)
+
 
     return Button
 
@@ -378,81 +536,159 @@ end
 --// MAIN BUTTONS
 --// =========================================================
 
-createToggle("Auras", 55, "Auras")
-createToggle("Merchant", 110, "Merchant")
+createToggle(
+    "Auras",
+    55,
+    "Auras"
+)
+
+createToggle(
+    "Merchant",
+    110,
+    "Merchant"
+)
 
 
 --// =========================================================
 --// HATCH EGGS BUTTON
 --// =========================================================
 
-local HatchButton = Instance.new("TextButton")
+local HatchButton =
+    Instance.new("TextButton")
 
-HatchButton.Size = UDim2.new(1, -30, 0, 45)
-HatchButton.Position = UDim2.new(0, 15, 0, 165)
-HatchButton.BackgroundColor3 = Color3.fromRGB(65, 90, 160)
-HatchButton.Text = "Hatch Eggs  ▼"
-HatchButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+HatchButton.Size =
+    UDim2.new(1, -30, 0, 45)
+
+HatchButton.Position =
+    UDim2.new(0, 15, 0, 165)
+
+HatchButton.BackgroundColor3 =
+    Color3.fromRGB(65, 90, 160)
+
+HatchButton.Text =
+    "Hatch Eggs  ▼"
+
+HatchButton.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
 HatchButton.TextSize = 16
 HatchButton.Font = Enum.Font.GothamBold
 HatchButton.BorderSizePixel = 0
+
 HatchButton.Parent = Main
 
-local HatchCorner = Instance.new("UICorner")
-HatchCorner.CornerRadius = UDim.new(0, 8)
-HatchCorner.Parent = HatchButton
+
+local HatchCorner =
+    Instance.new("UICorner")
+
+HatchCorner.CornerRadius =
+    UDim.new(0, 8)
+
+HatchCorner.Parent =
+    HatchButton
 
 
-createToggle("AutoTap", 220, "AutoTap")
-createToggle("Auto Quests", 275, "AutoQuests")
+createToggle(
+    "AutoTap",
+    220,
+    "AutoTap"
+)
+
+createToggle(
+    "Auto Quests",
+    275,
+    "AutoQuests"
+)
 
 
 --// =========================================================
 --// EGG POPUP
 --// =========================================================
 
-local EggPopup = Instance.new("Frame")
+local EggPopup =
+    Instance.new("Frame")
 
-EggPopup.Size = UDim2.new(0, 240, 0, 340)
-EggPopup.Position = UDim2.new(1, 10, 0, 40)
-EggPopup.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+EggPopup.Size =
+    UDim2.new(0, 240, 0, 340)
+
+EggPopup.Position =
+    UDim2.new(1, 10, 0, 40)
+
+EggPopup.BackgroundColor3 =
+    Color3.fromRGB(25, 25, 25)
+
 EggPopup.BorderSizePixel = 0
 EggPopup.Visible = false
 EggPopup.Parent = Main
 
-local PopupCorner = Instance.new("UICorner")
-PopupCorner.CornerRadius = UDim.new(0, 10)
+
+local PopupCorner =
+    Instance.new("UICorner")
+
+PopupCorner.CornerRadius =
+    UDim.new(0, 10)
+
 PopupCorner.Parent = EggPopup
 
 
-local PopupTitle = Instance.new("TextLabel")
+local PopupTitle =
+    Instance.new("TextLabel")
 
-PopupTitle.Size = UDim2.new(1, -40, 0, 35)
-PopupTitle.Position = UDim2.new(0, 10, 0, 5)
+PopupTitle.Size =
+    UDim2.new(1, -40, 0, 35)
+
+PopupTitle.Position =
+    UDim2.new(0, 10, 0, 5)
+
 PopupTitle.BackgroundTransparency = 1
 PopupTitle.Text = "Select Egg"
-PopupTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+PopupTitle.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
 PopupTitle.TextSize = 18
 PopupTitle.Font = Enum.Font.GothamBold
-PopupTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+PopupTitle.TextXAlignment =
+    Enum.TextXAlignment.Left
+
 PopupTitle.Parent = EggPopup
 
 
-local PopupClose = Instance.new("TextButton")
+local PopupClose =
+    Instance.new("TextButton")
 
-PopupClose.Size = UDim2.new(0, 30, 0, 30)
-PopupClose.Position = UDim2.new(1, -35, 0, 5)
-PopupClose.BackgroundColor3 = Color3.fromRGB(150, 55, 55)
+PopupClose.Size =
+    UDim2.new(0, 30, 0, 30)
+
+PopupClose.Position =
+    UDim2.new(1, -35, 0, 5)
+
+PopupClose.BackgroundColor3 =
+    Color3.fromRGB(150, 55, 55)
+
 PopupClose.Text = "X"
-PopupClose.TextColor3 = Color3.fromRGB(255, 255, 255)
-PopupClose.Font = Enum.Font.GothamBold
+
+PopupClose.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
+PopupClose.Font =
+    Enum.Font.GothamBold
+
 PopupClose.TextSize = 14
 PopupClose.BorderSizePixel = 0
+
 PopupClose.Parent = EggPopup
 
-local PopupCloseCorner = Instance.new("UICorner")
-PopupCloseCorner.CornerRadius = UDim.new(0, 6)
-PopupCloseCorner.Parent = PopupClose
+
+local PopupCloseCorner =
+    Instance.new("UICorner")
+
+PopupCloseCorner.CornerRadius =
+    UDim.new(0, 6)
+
+PopupCloseCorner.Parent =
+    PopupClose
 
 
 PopupClose.MouseButton1Click:Connect(function()
@@ -464,52 +700,96 @@ end)
 --// SELECTED EGG
 --// =========================================================
 
-local SelectedLabel = Instance.new("TextLabel")
+local SelectedLabel =
+    Instance.new("TextLabel")
 
-SelectedLabel.Size = UDim2.new(1, -20, 0, 30)
-SelectedLabel.Position = UDim2.new(0, 10, 0, 40)
-SelectedLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-SelectedLabel.Text = "Selected: " .. SelectedEgg
-SelectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SelectedLabel.Size =
+    UDim2.new(1, -20, 0, 30)
+
+SelectedLabel.Position =
+    UDim2.new(0, 10, 0, 40)
+
+SelectedLabel.BackgroundColor3 =
+    Color3.fromRGB(40, 40, 40)
+
+SelectedLabel.Text =
+    "Selected: " .. SelectedEgg
+
+SelectedLabel.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
 SelectedLabel.TextSize = 14
 SelectedLabel.Font = Enum.Font.GothamBold
 SelectedLabel.BorderSizePixel = 0
+
 SelectedLabel.Parent = EggPopup
 
-local SelectedCorner = Instance.new("UICorner")
-SelectedCorner.CornerRadius = UDim.new(0, 6)
-SelectedCorner.Parent = SelectedLabel
+
+local SelectedCorner =
+    Instance.new("UICorner")
+
+SelectedCorner.CornerRadius =
+    UDim.new(0, 6)
+
+SelectedCorner.Parent =
+    SelectedLabel
 
 
 --// =========================================================
 --// EGG SCROLL
 --// =========================================================
 
-local EggScroll = Instance.new("ScrollingFrame")
+local EggScroll =
+    Instance.new("ScrollingFrame")
 
-EggScroll.Size = UDim2.new(1, -20, 0, 205)
-EggScroll.Position = UDim2.new(0, 10, 0, 80)
-EggScroll.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+EggScroll.Size =
+    UDim2.new(1, -20, 0, 205)
+
+EggScroll.Position =
+    UDim2.new(0, 10, 0, 80)
+
+EggScroll.BackgroundColor3 =
+    Color3.fromRGB(35, 35, 35)
+
 EggScroll.BorderSizePixel = 0
 EggScroll.ScrollBarThickness = 6
-EggScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-EggScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+EggScroll.CanvasSize =
+    UDim2.new(0, 0, 0, 0)
+
+EggScroll.AutomaticCanvasSize =
+    Enum.AutomaticSize.Y
+
 EggScroll.Parent = EggPopup
 
 
-local EggLayout = Instance.new("UIListLayout")
+local EggLayout =
+    Instance.new("UIListLayout")
 
-EggLayout.Padding = UDim.new(0, 5)
-EggLayout.SortOrder = Enum.SortOrder.LayoutOrder
+EggLayout.Padding =
+    UDim.new(0, 5)
+
+EggLayout.SortOrder =
+    Enum.SortOrder.LayoutOrder
+
 EggLayout.Parent = EggScroll
 
 
-local EggPadding = Instance.new("UIPadding")
+local EggPadding =
+    Instance.new("UIPadding")
 
-EggPadding.PaddingTop = UDim.new(0, 5)
-EggPadding.PaddingBottom = UDim.new(0, 5)
-EggPadding.PaddingLeft = UDim.new(0, 5)
-EggPadding.PaddingRight = UDim.new(0, 5)
+EggPadding.PaddingTop =
+    UDim.new(0, 5)
+
+EggPadding.PaddingBottom =
+    UDim.new(0, 5)
+
+EggPadding.PaddingLeft =
+    UDim.new(0, 5)
+
+EggPadding.PaddingRight =
+    UDim.new(0, 5)
+
 EggPadding.Parent = EggScroll
 
 
@@ -522,22 +802,39 @@ local EggButtons = {}
 
 for _, eggName in ipairs(Eggs) do
 
-    local EggButton = Instance.new("TextButton")
+    local EggButton =
+        Instance.new("TextButton")
 
-    EggButton.Size = UDim2.new(1, -10, 0, 38)
-    EggButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    EggButton.Size =
+        UDim2.new(1, -10, 0, 38)
+
+    EggButton.BackgroundColor3 =
+        Color3.fromRGB(60, 60, 60)
+
     EggButton.Text = eggName
-    EggButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+    EggButton.TextColor3 =
+        Color3.fromRGB(255, 255, 255)
+
     EggButton.TextSize = 15
     EggButton.Font = Enum.Font.GothamBold
+
     EggButton.BorderSizePixel = 0
     EggButton.Parent = EggScroll
 
-    local EggCorner = Instance.new("UICorner")
-    EggCorner.CornerRadius = UDim.new(0, 6)
-    EggCorner.Parent = EggButton
 
-    EggButtons[eggName] = EggButton
+    local EggCorner =
+        Instance.new("UICorner")
+
+    EggCorner.CornerRadius =
+        UDim.new(0, 6)
+
+    EggCorner.Parent =
+        EggButton
+
+
+    EggButtons[eggName] =
+        EggButton
 
 
     EggButton.MouseButton1Click:Connect(function()
@@ -548,12 +845,22 @@ for _, eggName in ipairs(Eggs) do
             "Selected: " .. eggName
 
         for _, button in pairs(EggButtons) do
+
             button.BackgroundColor3 =
-                Color3.fromRGB(60, 60, 60)
+                Color3.fromRGB(
+                    60,
+                    60,
+                    60
+                )
+
         end
 
         EggButton.BackgroundColor3 =
-            Color3.fromRGB(55, 150, 75)
+            Color3.fromRGB(
+                55,
+                150,
+                75
+            )
 
     end)
 
@@ -565,24 +872,42 @@ EggButtons["Basic"].BackgroundColor3 =
 
 
 --// =========================================================
---// AUTO HATCH TOGGLE
+--// AUTO HATCH BUTTON
 --// =========================================================
 
-local AutoHatchButton = Instance.new("TextButton")
+local AutoHatchButton =
+    Instance.new("TextButton")
 
-AutoHatchButton.Size = UDim2.new(1, -20, 0, 40)
-AutoHatchButton.Position = UDim2.new(0, 10, 1, -50)
-AutoHatchButton.BackgroundColor3 = Color3.fromRGB(150, 55, 55)
-AutoHatchButton.Text = "Auto Hatch: OFF"
-AutoHatchButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoHatchButton.Size =
+    UDim2.new(1, -20, 0, 40)
+
+AutoHatchButton.Position =
+    UDim2.new(0, 10, 1, -50)
+
+AutoHatchButton.BackgroundColor3 =
+    Color3.fromRGB(150, 55, 55)
+
+AutoHatchButton.Text =
+    "Auto Hatch: OFF"
+
+AutoHatchButton.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
 AutoHatchButton.TextSize = 15
 AutoHatchButton.Font = Enum.Font.GothamBold
 AutoHatchButton.BorderSizePixel = 0
+
 AutoHatchButton.Parent = EggPopup
 
-local AutoHatchCorner = Instance.new("UICorner")
-AutoHatchCorner.CornerRadius = UDim.new(0, 7)
-AutoHatchCorner.Parent = AutoHatchButton
+
+local AutoHatchCorner =
+    Instance.new("UICorner")
+
+AutoHatchCorner.CornerRadius =
+    UDim.new(0, 7)
+
+AutoHatchCorner.Parent =
+    AutoHatchButton
 
 
 AutoHatchButton.MouseButton1Click:Connect(function()
@@ -596,13 +921,21 @@ AutoHatchButton.MouseButton1Click:Connect(function()
             "Auto Hatch: ON"
 
         AutoHatchButton.BackgroundColor3 =
-            Color3.fromRGB(55, 150, 75)
+            Color3.fromRGB(
+                55,
+                150,
+                75
+            )
 
         HatchButton.Text =
             "Hatch Eggs: ON  ▼"
 
         HatchButton.BackgroundColor3 =
-            Color3.fromRGB(55, 150, 75)
+            Color3.fromRGB(
+                55,
+                150,
+                75
+            )
 
     else
 
@@ -610,13 +943,21 @@ AutoHatchButton.MouseButton1Click:Connect(function()
             "Auto Hatch: OFF"
 
         AutoHatchButton.BackgroundColor3 =
-            Color3.fromRGB(150, 55, 55)
+            Color3.fromRGB(
+                150,
+                55,
+                55
+            )
 
         HatchButton.Text =
             "Hatch Eggs  ▼"
 
         HatchButton.BackgroundColor3 =
-            Color3.fromRGB(65, 90, 160)
+            Color3.fromRGB(
+                65,
+                90,
+                160
+            )
 
     end
 
@@ -632,39 +973,41 @@ end)
 
 
 --// =========================================================
---// NORMAL AURAS
+--// NORMAL AURA WORKER
 --// =========================================================
 
 task.spawn(function()
 
-    while ScreenGui.Parent do
+    while alive do
 
-        if Settings.Auras then
+        if not Settings.Auras then
 
-            for _, aura in ipairs(AuraPriority) do
+            task.wait(IDLE_DELAY)
+            continue
 
-                if not Settings.Auras
-                    or not ScreenGui.Parent then
+        end
 
-                    break
 
-                end
+        for _, aura in ipairs(AuraPriority) do
 
-                pcall(function()
+            if not alive
+                or not Settings.Auras then
 
-                    Functions
-                        :WaitForChild("AurasFunction")
-                        :InvokeServer(aura)
-
-                end)
-
-                task.wait(1)
+                break
 
             end
 
-        else
 
-            task.wait(0.2)
+            pcall(function()
+
+                Functions
+                    :WaitForChild("AurasFunction")
+                    :InvokeServer(aura)
+
+            end)
+
+
+            task.wait(1)
 
         end
 
@@ -674,79 +1017,79 @@ end)
 
 
 --// =========================================================
---// MERCHANT
+--// MERCHANT WORKER
 --// =========================================================
 
 task.spawn(function()
 
-    while ScreenGui.Parent do
+    while alive do
 
-        if Settings.Merchant then
+        if not Settings.Merchant then
 
-            pcall(function()
-
-                Events
-                    :WaitForChild("Click")
-                    :FireServer()
-
-            end)
-
-
-            pcall(function()
-
-                Functions
-                    :WaitForChild("MerchantPurchase")
-                    :InvokeServer(
-                        "Spawn",
-                        "ClickPotionUses"
-                    )
-
-            end)
-
-
-            pcall(function()
-
-                Functions
-                    :WaitForChild("MerchantPurchase")
-                    :InvokeServer(
-                        "Spawn",
-                        "LuckPotionUses"
-                    )
-
-            end)
-
-
-            pcall(function()
-
-                Functions
-                    :WaitForChild("MerchantPurchase")
-                    :InvokeServer(
-                        "Spawn",
-                        "HatchPotionUses"
-                    )
-
-            end)
-
-
-            pcall(function()
-
-                Functions
-                    :WaitForChild("MerchantPurchase")
-                    :InvokeServer(
-                        "Spawn",
-                        "Stock"
-                    )
-
-            end)
-
-
-            task.wait(1)
-
-        else
-
-            task.wait(0.2)
+            task.wait(IDLE_DELAY)
+            continue
 
         end
+
+
+        pcall(function()
+
+            Events
+                :WaitForChild("Click")
+                :FireServer()
+
+        end)
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("MerchantPurchase")
+                :InvokeServer(
+                    "Spawn",
+                    "ClickPotionUses"
+                )
+
+        end)
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("MerchantPurchase")
+                :InvokeServer(
+                    "Spawn",
+                    "LuckPotionUses"
+                )
+
+        end)
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("MerchantPurchase")
+                :InvokeServer(
+                    "Spawn",
+                    "HatchPotionUses"
+                )
+
+        end)
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("MerchantPurchase")
+                :InvokeServer(
+                    "Spawn",
+                    "Stock"
+                )
+
+        end)
+
+
+        task.wait(1)
 
     end
 
@@ -755,34 +1098,37 @@ end)
 
 --// =========================================================
 --// NORMAL AUTO HATCH
---// PAUSED WHILE AUTO QUESTS IS ON
+--// Paused during AutoQuests
 --// =========================================================
 
 task.spawn(function()
 
-    while ScreenGui.Parent do
+    while alive do
 
-        if Settings.Hatch
-            and not Settings.AutoQuests then
+        if not Settings.Hatch
+            or Settings.AutoQuests then
 
-            pcall(function()
-
-                Functions
-                    :WaitForChild("Hatch")
-                    :InvokeServer(
-                        SelectedEgg,
-                        "Triple"
-                    )
-
-            end)
-
-            task.wait(0.1)
-
-        else
-
-            task.wait(0.2)
+            task.wait(IDLE_DELAY)
+            continue
 
         end
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("Hatch")
+                :InvokeServer(
+                    SelectedEgg,
+                    "Triple"
+                )
+
+        end)
+
+
+        task.wait(
+            NORMAL_HATCH_DELAY
+        )
 
     end
 
@@ -795,25 +1141,26 @@ end)
 
 task.spawn(function()
 
-    while ScreenGui.Parent do
+    while alive do
 
-        if Settings.AutoTap then
+        if not Settings.AutoTap then
 
-            pcall(function()
-
-                Events
-                    :WaitForChild("Click")
-                    :FireServer()
-
-            end)
-
-            task.wait(0.05)
-
-        else
-
-            task.wait(0.2)
+            task.wait(IDLE_DELAY)
+            continue
 
         end
+
+
+        pcall(function()
+
+            Events
+                :WaitForChild("Click")
+                :FireServer()
+
+        end)
+
+
+        task.wait(0.05)
 
     end
 
@@ -821,7 +1168,7 @@ end)
 
 
 --// =========================================================
---// QUEST TABLE SEARCH
+--// QUEST DATA HELPERS
 --// =========================================================
 
 local function looksLikeQuestList(tbl)
@@ -830,7 +1177,9 @@ local function looksLikeQuestList(tbl)
         return false
     end
 
+
     local found = 0
+
 
     for _, value in pairs(tbl) do
 
@@ -844,27 +1193,34 @@ local function looksLikeQuestList(tbl)
 
     end
 
+
     return found > 0
 
 end
 
 
-local function findQuestList(tbl, depth, visited)
+local function findQuestList(
+    tbl,
+    depth,
+    visited
+)
 
     if type(tbl) ~= "table" then
         return nil
     end
 
+
     depth = depth or 0
     visited = visited or {}
 
-    if depth > 6 then
+
+    if depth > 6
+        or visited[tbl] then
+
         return nil
+
     end
 
-    if visited[tbl] then
-        return nil
-    end
 
     visited[tbl] = true
 
@@ -885,6 +1241,7 @@ local function findQuestList(tbl, depth, visited)
                     visited
                 )
 
+
             if result then
                 return result
             end
@@ -893,14 +1250,11 @@ local function findQuestList(tbl, depth, visited)
 
     end
 
+
     return nil
 
 end
 
-
---// =========================================================
---// STAT SEARCH
---// =========================================================
 
 local function findStat(
     tbl,
@@ -913,16 +1267,18 @@ local function findStat(
         return nil
     end
 
+
     depth = depth or 0
     visited = visited or {}
 
-    if depth > 6 then
+
+    if depth > 6
+        or visited[tbl] then
+
         return nil
+
     end
 
-    if visited[tbl] then
-        return nil
-    end
 
     visited[tbl] = true
 
@@ -930,9 +1286,11 @@ local function findStat(
     if tbl[statName] ~= nil then
 
         local value =
-            tonumber(tbl[statName])
+            tonumber(
+                tbl[statName]
+            )
 
-        if value then
+        if value ~= nil then
             return value
         end
 
@@ -959,17 +1317,29 @@ local function findStat(
 
     end
 
+
     return nil
 
 end
 
 
 --// =========================================================
---// REPLICA
+--// OPTIMIZED REPLICA DISCOVERY
+--//
+--// OLD VERSION:
+--// scanned 1 -> 5000 repeatedly.
+--//
+--// NEW VERSION:
+--// checks small batches until it finds the profile,
+--// then caches it permanently.
 --// =========================================================
 
 local QuestReplica = nil
-local StatReplicaCache = {}
+
+local REPLICA_SEARCH_MAX = 5000
+local REPLICA_BATCH_SIZE = 100
+
+local ReplicaSearchCursor = 1
 
 
 local function getReplica(id)
@@ -977,49 +1347,82 @@ local function getReplica(id)
     local success, replica =
         pcall(function()
 
-            return ReplicaController.GetReplicaById(id)
+            return ReplicaController
+                .GetReplicaById(id)
 
         end)
+
 
     if success then
         return replica
     end
+
 
     return nil
 
 end
 
 
-local function discoverQuestReplica()
+local function questReplicaStillValid()
 
-    if QuestReplica
-        and QuestReplica.Data
-        and findQuestList(QuestReplica.Data) then
+    if not QuestReplica
+        or not QuestReplica.Data then
 
-        return QuestReplica
+        return false
 
     end
 
 
-    for id = 1, 5000 do
+    return findQuestList(
+        QuestReplica.Data
+    ) ~= nil
+
+end
+
+
+local function searchReplicaBatch()
+
+    if questReplicaStillValid() then
+        return QuestReplica
+    end
+
+
+    QuestReplica = nil
+
+
+    for _ = 1, REPLICA_BATCH_SIZE do
+
+        local id =
+            ReplicaSearchCursor
+
+
+        ReplicaSearchCursor += 1
+
+
+        if ReplicaSearchCursor >
+            REPLICA_SEARCH_MAX then
+
+            ReplicaSearchCursor = 1
+
+        end
+
 
         local replica =
             getReplica(id)
 
-        if replica and replica.Data then
 
-            local quests =
-                findQuestList(
-                    replica.Data
-                )
+        if replica
+            and replica.Data then
 
-            if quests then
+            if findQuestList(
+                replica.Data
+            ) then
 
                 QuestReplica =
                     replica
 
                 print(
-                    "[AutoQuest] Quest data found"
+                    "[AutoQuest] Quest replica cached"
                 )
 
                 return replica
@@ -1028,11 +1431,8 @@ local function discoverQuestReplica()
 
         end
 
-        if id % 250 == 0 then
-            task.wait()
-        end
-
     end
+
 
     return nil
 
@@ -1041,102 +1441,55 @@ end
 
 local function getCurrentQuests()
 
-    local replica =
-        discoverQuestReplica()
+    if not questReplicaStillValid() then
 
-    if not replica then
+        searchReplicaBatch()
+
+    end
+
+
+    if not QuestReplica then
         return nil
     end
 
+
     return findQuestList(
-        replica.Data
+        QuestReplica.Data
     )
 
 end
 
 
+--// =========================================================
+--// CURRENT STAT
+--//
+--// The SeasonQuests module uses the same profile .Data
+--// table when creating quest endAmount values, so we read
+--// stats from the cached profile instead of scanning
+--// thousands of replicas for every stat.
+--// =========================================================
+
 local function getCurrentStat(statName)
 
-    local cached =
-        StatReplicaCache[statName]
+    if not QuestReplica
+        or not QuestReplica.Data then
 
-
-    if cached
-        and cached.Data then
-
-        local result =
-            findStat(
-                cached.Data,
-                statName
-            )
-
-        if result ~= nil then
-            return result
-        end
+        return 0
 
     end
 
 
-    if QuestReplica
-        and QuestReplica.Data then
-
-        local result =
-            findStat(
-                QuestReplica.Data,
-                statName
-            )
-
-        if result ~= nil then
-
-            StatReplicaCache[statName] =
-                QuestReplica
-
-            return result
-
-        end
-
-    end
+    local result =
+        findStat(
+            QuestReplica.Data,
+            statName
+        )
 
 
-    for id = 1, 5000 do
-
-        local replica =
-            getReplica(id)
-
-        if replica
-            and replica.Data then
-
-            local result =
-                findStat(
-                    replica.Data,
-                    statName
-                )
-
-            if result ~= nil then
-
-                StatReplicaCache[statName] =
-                    replica
-
-                return result
-
-            end
-
-        end
-
-        if id % 250 == 0 then
-            task.wait()
-        end
-
-    end
-
-    return 0
+    return result or 0
 
 end
 
-
---// =========================================================
---// QUEST COMPLETE CHECK
---// =========================================================
 
 local function questComplete(
     quest,
@@ -1166,624 +1519,602 @@ end
 
 
 --// =========================================================
---// SAFE ACTION
+--// QUEST STATE
+--//
+--// Scanner updates this only 4 times/second.
+--// Individual quest workers read these booleans.
 --// =========================================================
 
-local function runAction(
-    actionName,
-    callback
-)
+local QuestState = {
 
-    if ActionBusy[actionName] then
-        return
-    end
+    Eggs = false,
 
-    ActionBusy[actionName] = true
+    EternalHatch = false,
+    SecretHatch = false,
 
-    task.spawn(function()
+    Boosts = false,
+    Potions = false,
+    Fruits = false,
 
-        local success, err =
-            pcall(callback)
+    Auras = false,
+    Crates = false,
 
-        if not success then
+    Gold = false,
+    Rainbow = false
 
-            warn(
-                "[AutoQuest]",
-                actionName,
-                err
-            )
-
-        end
-
-        ActionBusy[actionName] = false
-
-    end)
-
-end
+}
 
 
---// =========================================================
---// QUEST HELPERS
---// =========================================================
+local function clearQuestState()
 
-local function QuestHatch(egg)
-
-    Functions
-        :WaitForChild("Hatch")
-        :InvokeServer(
-            egg,
-            "Triple"
-        )
-
-end
-
-
-local function QuestRollAura()
-
-    local aura =
-        AuraPriority[
-            QuestAuraIndex
-        ]
-
-    Functions
-        :WaitForChild("AurasFunction")
-        :InvokeServer(aura)
-
-    QuestAuraIndex += 1
-
-    if QuestAuraIndex >
-        #AuraPriority then
-
-        QuestAuraIndex = 1
-
+    for key in pairs(QuestState) do
+        QuestState[key] = false
     end
 
 end
 
 
-local function QuestUseBoost()
-
-    local item =
-        BoostItems[
-            BoostIndex
-        ]
-
-    Events
-        :WaitForChild("UsePotion")
-        :FireServer(
-            item,
-            1
-        )
-
-    BoostIndex += 1
-
-    if BoostIndex >
-        #BoostItems then
-
-        BoostIndex = 1
-
-    end
-
-end
-
-
-local function QuestUseFruit()
-
-    local item =
-        FruitItems[
-            FruitIndex
-        ]
-
-    Events
-        :WaitForChild("UsePotion")
-        :FireServer(
-            item,
-            1
-        )
-
-    FruitIndex += 1
-
-    if FruitIndex >
-        #FruitItems then
-
-        FruitIndex = 1
-
-    end
-
-end
-
-
-local function QuestUsePotion()
-
-    local item =
-        PotionItems[
-            PotionIndex
-        ]
-
-    Events
-        :WaitForChild("UsePotion")
-        :FireServer(
-            item,
-            1
-        )
-
-    PotionIndex += 1
-
-    if PotionIndex >
-        #PotionItems then
-
-        PotionIndex = 1
-
-    end
-
-end
-
-
-local function QuestCraft(craftType)
-
-    Functions
-        :WaitForChild("CraftAllStacks")
-        :InvokeServer(
-            craftType
-        )
-
-end
-
-
-local function QuestOpenCrate()
-
-    Events
-        :WaitForChild("OpenCrate")
-        :InvokeServer(
-            "fruitsBox",
-            1
-        )
-
-end
-
-
 --// =========================================================
---// SCAN ALL QUESTS
+--// QUEST SCANNER
 --// =========================================================
 
-local function getRequiredQuestActions()
+local function updateQuestState()
+
+    clearQuestState()
+
 
     local quests =
         getCurrentQuests()
 
+
     if not quests then
-        return nil
+        return
     end
-
-
-    local actions = {
-
-        Eggs = false,
-
-        EternalHatch = false,
-        SecretHatch = false,
-
-        Boosts = false,
-        Potions = false,
-        Fruits = false,
-
-        Auras = false,
-        Crates = false,
-
-        Gold = false,
-        Rainbow = false
-
-    }
 
 
     for _, quest in pairs(quests) do
 
-        if type(quest) == "table" then
-
-            local questInfo =
-                SeasonQuests.getQuestData(
-                    quest.Id
-                )
-
-            if questInfo then
-
-                local dataType =
-                    questInfo.dataType
+        if type(quest) ~= "table" then
+            continue
+        end
 
 
-                if not questComplete(
-                    quest,
-                    questInfo
-                ) then
+        local questInfo =
+            SeasonQuests.getQuestData(
+                quest.Id
+            )
 
 
-                    -- Ignore TimePlayed
-                    if dataType ==
-                        "TimePlayed" then
+        if not questInfo then
+            continue
+        end
 
 
-                    -- Ignore UniqueClicks
-                    elseif dataType ==
-                        "UniqueClicks" then
+        if questComplete(
+            quest,
+            questInfo
+        ) then
+
+            continue
+
+        end
 
 
-                    -- Open X Eggs
-                    elseif dataType ==
-                        "Eggs" then
-
-                        actions.Eggs =
-                            true
+        local dataType =
+            questInfo.dataType
 
 
-                    -- Eternal pets
-                    elseif dataType ==
-                        "EternalHatched" then
-
-                        actions.EternalHatch =
-                            true
+        -- Ignore time played
+        if dataType == "TimePlayed" then
+            continue
+        end
 
 
-                    -- Secret pets
-                    elseif dataType ==
-                        "SecretHatched" then
-
-                        actions.SecretHatch =
-                            true
+        -- Ignore click quests
+        if dataType == "UniqueClicks" then
+            continue
+        end
 
 
-                    -- Boosts
-                    elseif dataType ==
-                        "BoostsUsed" then
+        if dataType == "Eggs" then
 
-                        actions.Boosts =
-                            true
+            QuestState.Eggs = true
 
 
-                    -- Potions
-                    elseif dataType ==
-                        "PotionsUsed" then
+        elseif dataType ==
+            "EternalHatched" then
 
-                        actions.Potions =
-                            true
-
-
-                    -- Auras
-                    elseif dataType ==
-                        "AuraChestsOpened" then
-
-                        actions.Auras =
-                            true
+            QuestState.EternalHatch =
+                true
 
 
-                    -- Gold
-                    elseif dataType ==
-                        "ShinyCrafted" then
+        elseif dataType ==
+            "SecretHatched" then
 
-                        actions.Gold =
-                            true
-
-
-                    -- Rainbow
-                    elseif dataType ==
-                        "RainbowCrafted" then
-
-                        actions.Rainbow =
-                            true
+            QuestState.SecretHatch =
+                true
 
 
-                    -- Crates
-                    elseif dataType ==
-                        "TotalCratesOpened" then
+        elseif dataType ==
+            "BoostsUsed" then
 
-                        actions.Crates =
-                            true
+            QuestState.Boosts =
+                true
 
 
-                    -- Fruits
-                    elseif dataType ==
-                        "TotalFruitsUsed" then
+        elseif dataType ==
+            "PotionsUsed" then
 
-                        actions.Fruits =
-                            true
+            QuestState.Potions =
+                true
 
-                    end
 
-                end
+        elseif dataType ==
+            "AuraChestsOpened" then
 
-            end
+            QuestState.Auras =
+                true
+
+
+        elseif dataType ==
+            "ShinyCrafted" then
+
+            QuestState.Gold =
+                true
+
+
+        elseif dataType ==
+            "RainbowCrafted" then
+
+            QuestState.Rainbow =
+                true
+
+
+        elseif dataType ==
+            "TotalCratesOpened" then
+
+            QuestState.Crates =
+                true
+
+
+        elseif dataType ==
+            "TotalFruitsUsed" then
+
+            QuestState.Fruits =
+                true
 
         end
 
     end
 
-    return actions
-
 end
 
 
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoQuests then
+
+            clearQuestState()
+
+            task.wait(IDLE_DELAY)
+
+            continue
+
+        end
+
+
+        updateQuestState()
+
+
+        task.wait(
+            QUEST_SCAN_DELAY
+        )
+
+    end
+
+end)
+
+
 --// =========================================================
---// MULTI AUTO QUEST LOOP
+--// AUTO QUEST HATCH WORKER
+--//
+--// STRICT PRIORITY:
+--//
+--// Secret   = Basic
+--// Eternal  = City
+--// Eggs     = Magic
+--//
+--// Only ONE quest hatch type runs at once.
 --// =========================================================
 
 task.spawn(function()
 
-    while ScreenGui.Parent do
+    while alive do
 
-        if Settings.AutoQuests then
+        if not Settings.AutoQuests then
 
-            local actions =
-                getRequiredQuestActions()
-
-
-            if actions then
-
-                local didSomething =
-                    false
-
-
-                --// ==========================================
-                --// HATCH PRIORITY
-                --//
-                --// Secret > Eternal > Eggs
-                --//
-                --// Secret = Basic
-                --// Eternal = City
-                --// Eggs = Magic
-                --// ==========================================
-
-                if actions.SecretHatch then
-
-                    runAction(
-                        "QuestHatch",
-
-                        function()
-
-                            QuestHatch(
-                                SECRET_EGG
-                            )
-
-                        end
-                    )
-
-                    didSomething = true
-
-
-                elseif actions.EternalHatch then
-
-                    runAction(
-                        "QuestHatch",
-
-                        function()
-
-                            QuestHatch(
-                                ETERNAL_EGG
-                            )
-
-                        end
-                    )
-
-                    didSomething = true
-
-
-                elseif actions.Eggs then
-
-                    runAction(
-                        "QuestHatch",
-
-                        function()
-
-                            QuestHatch(
-                                NORMAL_EGG
-                            )
-
-                        end
-                    )
-
-                    didSomething = true
-
-                end
-
-
-                --// ==========================================
-                --// BOOSTS
-                --// ==========================================
-
-                if actions.Boosts then
-
-                    runAction(
-                        "QuestBoost",
-
-                        function()
-
-                            QuestUseBoost()
-
-                        end
-                    )
-
-                    didSomething = true
-
-                end
-
-
-                --// ==========================================
-                --// POTIONS
-                --// ==========================================
-
-                if actions.Potions then
-
-                    runAction(
-                        "QuestPotion",
-
-                        function()
-
-                            QuestUsePotion()
-
-                        end
-                    )
-
-                    didSomething = true
-
-                end
-
-
-                --// ==========================================
-                --// FRUITS
-                --// ==========================================
-
-                if actions.Fruits then
-
-                    runAction(
-                        "QuestFruit",
-
-                        function()
-
-                            QuestUseFruit()
-
-                        end
-                    )
-
-                    didSomething = true
-
-                end
-
-
-                --// ==========================================
-                --// AURAS
-                --// ==========================================
-
-                if actions.Auras then
-
-                    runAction(
-                        "QuestAura",
-
-                        function()
-
-                            QuestRollAura()
-
-                        end
-                    )
-
-                    didSomething = true
-
-                end
-
-
-                --// ==========================================
-                --// CRATES
-                --// ==========================================
-
-                if actions.Crates then
-
-                    runAction(
-                        "QuestCrate",
-
-                        function()
-
-                            QuestOpenCrate()
-
-                        end
-                    )
-
-                    didSomething = true
-
-                end
-
-
-                --// ==========================================
-                --// GOLD
-                --// ==========================================
-
-                if actions.Gold then
-
-                    local now =
-                        os.clock()
-
-
-                    if now - LastGoldCraft
-                        >= CRAFT_DELAY then
-
-                        LastGoldCraft =
-                            now
-
-
-                        runAction(
-                            "QuestGold",
-
-                            function()
-
-                                QuestCraft(
-                                    "Gold"
-                                )
-
-                            end
-                        )
-
-                    end
-
-                    didSomething = true
-
-                end
-
-
-                --// ==========================================
-                --// RAINBOW
-                --// ==========================================
-
-                if actions.Rainbow then
-
-                    local now =
-                        os.clock()
-
-
-                    if now - LastRainbowCraft
-                        >= CRAFT_DELAY then
-
-                        LastRainbowCraft =
-                            now
-
-
-                        runAction(
-                            "QuestRainbow",
-
-                            function()
-
-                                QuestCraft(
-                                    "Rainbow"
-                                )
-
-                            end
-                        )
-
-                    end
-
-                    didSomething = true
-
-                end
-
-
-                if didSomething then
-
-                    task.wait(
-                        QUEST_ACTION_DELAY
-                    )
-
-                else
-
-                    task.wait(0.5)
-
-                end
-
-            else
-
-                task.wait(1)
-
-            end
-
-        else
-
-            task.wait(0.25)
+            task.wait(IDLE_DELAY)
+            continue
 
         end
+
+
+        local egg = nil
+
+
+        if QuestState.SecretHatch then
+
+            egg = SECRET_EGG
+
+
+        elseif QuestState.EternalHatch then
+
+            egg = ETERNAL_EGG
+
+
+        elseif QuestState.Eggs then
+
+            egg = NORMAL_EGG
+
+        end
+
+
+        if not egg then
+
+            task.wait(0.5)
+            continue
+
+        end
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("Hatch")
+                :InvokeServer(
+                    egg,
+                    "Triple"
+                )
+
+        end)
+
+
+        task.wait(
+            QUEST_HATCH_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// AUTO QUEST BOOST WORKER
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoQuests
+            or not QuestState.Boosts then
+
+            task.wait(IDLE_DELAY)
+            continue
+
+        end
+
+
+        local item =
+            BoostItems[
+                BoostIndex
+            ]
+
+
+        pcall(function()
+
+            Events
+                :WaitForChild("UsePotion")
+                :FireServer(
+                    item,
+                    1
+                )
+
+        end)
+
+
+        BoostIndex += 1
+
+
+        if BoostIndex >
+            #BoostItems then
+
+            BoostIndex = 1
+
+        end
+
+
+        task.wait(
+            QUEST_ITEM_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// AUTO QUEST POTION WORKER
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoQuests
+            or not QuestState.Potions then
+
+            task.wait(IDLE_DELAY)
+            continue
+
+        end
+
+
+        local item =
+            PotionItems[
+                PotionIndex
+            ]
+
+
+        pcall(function()
+
+            Events
+                :WaitForChild("UsePotion")
+                :FireServer(
+                    item,
+                    1
+                )
+
+        end)
+
+
+        PotionIndex += 1
+
+
+        if PotionIndex >
+            #PotionItems then
+
+            PotionIndex = 1
+
+        end
+
+
+        task.wait(
+            QUEST_ITEM_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// AUTO QUEST FRUIT WORKER
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoQuests
+            or not QuestState.Fruits then
+
+            task.wait(IDLE_DELAY)
+            continue
+
+        end
+
+
+        local item =
+            FruitItems[
+                FruitIndex
+            ]
+
+
+        pcall(function()
+
+            Events
+                :WaitForChild("UsePotion")
+                :FireServer(
+                    item,
+                    1
+                )
+
+        end)
+
+
+        FruitIndex += 1
+
+
+        if FruitIndex >
+            #FruitItems then
+
+            FruitIndex = 1
+
+        end
+
+
+        task.wait(
+            QUEST_ITEM_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// AUTO QUEST AURA WORKER
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoQuests
+            or not QuestState.Auras then
+
+            task.wait(IDLE_DELAY)
+            continue
+
+        end
+
+
+        local aura =
+            AuraPriority[
+                QuestAuraIndex
+            ]
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("AurasFunction")
+                :InvokeServer(
+                    aura
+                )
+
+        end)
+
+
+        QuestAuraIndex += 1
+
+
+        if QuestAuraIndex >
+            #AuraPriority then
+
+            QuestAuraIndex = 1
+
+        end
+
+
+        task.wait(
+            QUEST_AURA_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// AUTO QUEST CRATE WORKER
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoQuests
+            or not QuestState.Crates then
+
+            task.wait(IDLE_DELAY)
+            continue
+
+        end
+
+
+        pcall(function()
+
+            Events
+                :WaitForChild("OpenCrate")
+                :InvokeServer(
+                    "fruitsBox",
+                    1
+                )
+
+        end)
+
+
+        task.wait(
+            QUEST_CRATE_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// AUTO QUEST GOLD WORKER
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoQuests
+            or not QuestState.Gold then
+
+            task.wait(IDLE_DELAY)
+            continue
+
+        end
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("CraftAllStacks")
+                :InvokeServer(
+                    "Gold"
+                )
+
+        end)
+
+
+        task.wait(
+            QUEST_CRAFT_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// AUTO QUEST RAINBOW WORKER
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoQuests
+            or not QuestState.Rainbow then
+
+            task.wait(IDLE_DELAY)
+            continue
+
+        end
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("CraftAllStacks")
+                :InvokeServer(
+                    "Rainbow"
+                )
+
+        end)
+
+
+        task.wait(
+            QUEST_CRAFT_DELAY
+        )
 
     end
 
