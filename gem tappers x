@@ -21,14 +21,12 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local Functions = ReplicatedStorage:WaitForChild("Functions")
 local Events = ReplicatedStorage:WaitForChild("Events")
+local Modules = ReplicatedStorage:WaitForChild("Modules")
 
 
 --// =========================================================
 --// MODULES
 --// =========================================================
-
-local Modules =
-    ReplicatedStorage:WaitForChild("Modules")
 
 local SeasonQuests = require(
     Modules:WaitForChild("SeasonQuests")
@@ -67,14 +65,9 @@ local ScreenGui
 --// =========================================================
 
 local function trackConnection(connection)
-
-    Connections[#Connections + 1] =
-        connection
-
+    Connections[#Connections + 1] = connection
     return connection
-
 end
-
 
 local function cleanup()
 
@@ -90,39 +83,24 @@ local function cleanup()
     Settings.AutoTap = false
     Settings.AutoQuests = false
 
-
     for _, connection in ipairs(Connections) do
-
         pcall(function()
             connection:Disconnect()
         end)
-
     end
 
     table.clear(Connections)
 
-
-    if ScreenGui
-        and ScreenGui.Parent then
-
+    if ScreenGui and ScreenGui.Parent then
         ScreenGui:Destroy()
-
     end
 
-
-    if _G.__AUTO_FARM_CLEANUP ==
-        cleanup then
-
-        _G.__AUTO_FARM_CLEANUP =
-            nil
-
+    if _G.__AUTO_FARM_CLEANUP == cleanup then
+        _G.__AUTO_FARM_CLEANUP = nil
     end
-
 end
 
-
-_G.__AUTO_FARM_CLEANUP =
-    cleanup
+_G.__AUTO_FARM_CLEANUP = cleanup
 
 
 --// =========================================================
@@ -133,13 +111,10 @@ trackConnection(
     Player.Idled:Connect(function()
 
         pcall(function()
-
             VirtualUser:CaptureController()
-
             VirtualUser:ClickButton2(
                 Vector2.new(0, 0)
             )
-
         end)
 
     end)
@@ -171,24 +146,16 @@ local Eggs = {
 
 
 --// =========================================================
---// AUTO QUEST EGG SETTINGS
+--// AUTO QUEST EGGS
 --// =========================================================
 
--- Hatch Secret Pets
-local SECRET_EGG =
-    "Basic"
-
--- Hatch Eternal Pets
-local ETERNAL_EGG =
-    "City"
-
--- Normal Open X Eggs
-local NORMAL_EGG =
-    "Magic"
+local SECRET_EGG = "Basic"
+local ETERNAL_EGG = "City"
+local NORMAL_EGG = "Magic"
 
 
 --// =========================================================
---// AURA PRIORITY
+--// AURAS
 --// =========================================================
 
 local AuraPriority = {
@@ -204,7 +171,7 @@ local QuestAuraIndex = 1
 
 
 --// =========================================================
---// BOOST ROTATION
+--// BOOSTS
 --// =========================================================
 
 local BoostItems = {
@@ -221,7 +188,7 @@ local BoostIndex = 1
 
 
 --// =========================================================
---// FRUIT ROTATION
+--// FRUITS
 --// =========================================================
 
 local FruitItems = {
@@ -235,7 +202,7 @@ local FruitIndex = 1
 
 
 --// =========================================================
---// POTION ROTATION
+--// POTIONS
 --// =========================================================
 
 local PotionItems = {
@@ -259,10 +226,7 @@ do
     local allSpawnItems =
         MerchantModule.getAll("Spawn")
 
-
-    for itemName, data in pairs(
-        allSpawnItems
-    ) do
+    for itemName, data in pairs(allSpawnItems) do
 
         table.insert(
             MerchantItems,
@@ -274,15 +238,10 @@ do
 
     end
 
-
     table.sort(
         MerchantItems,
-
         function(a, b)
-
-            return a.Lay <
-                b.Lay
-
+            return a.Lay < b.Lay
         end
     )
 
@@ -293,49 +252,24 @@ end
 --// TIMINGS
 --// =========================================================
 
-local NORMAL_HATCH_DELAY =
-    0.10
+local NORMAL_HATCH_DELAY = 0.10
 
--- Approximately 50 taps/sec
-local AUTO_TAP_DELAY =
-    0.02
+-- ~50 taps/sec
+local AUTO_TAP_DELAY = 0.02
 
+local QUEST_HATCH_DELAY = 0.15
+local QUEST_ITEM_DELAY = 0.15
+local QUEST_CRATE_DELAY = 0.15
+local QUEST_AURA_DELAY = 1
+local QUEST_CRAFT_DELAY = 1
+local QUEST_SCAN_DELAY = 0.25
 
-local QUEST_HATCH_DELAY =
-    0.15
+local MERCHANT_ITEM_DELAY = 0.05
+local MERCHANT_CYCLE_DELAY = 0.25
 
-local QUEST_ITEM_DELAY =
-    0.15
+local STATS_UPDATE_DELAY = 60
 
-local QUEST_CRATE_DELAY =
-    0.15
-
-local QUEST_AURA_DELAY =
-    1
-
-local QUEST_CRAFT_DELAY =
-    1
-
-local QUEST_SCAN_DELAY =
-    0.25
-
-
-local MERCHANT_ITEM_DELAY =
-    0.05
-
-local MERCHANT_CYCLE_DELAY =
-    0.25
-
-
--- Disabled workers only wake
--- approximately once per second
-local IDLE_DELAY =
-    1
-
-
--- Stats refresh rate
-local STATS_UPDATE_DELAY =
-    60
+local IDLE_DELAY = 1
 
 
 --// =========================================================
@@ -343,9 +277,7 @@ local STATS_UPDATE_DELAY =
 --// =========================================================
 
 local oldGui =
-    PlayerGui:FindFirstChild(
-        "AutoFarmGui"
-    )
+    PlayerGui:FindFirstChild("AutoFarmGui")
 
 if oldGui then
     oldGui:Destroy()
@@ -356,58 +288,27 @@ end
 --// SCREEN GUI
 --// =========================================================
 
-ScreenGui =
-    Instance.new("ScreenGui")
-
-ScreenGui.Name =
-    "AutoFarmGui"
-
-ScreenGui.ResetOnSpawn =
-    false
-
-ScreenGui.Parent =
-    PlayerGui
+ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "AutoFarmGui"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = PlayerGui
 
 
 --// =========================================================
 --// MAIN FRAME
 --// =========================================================
 
-local Main =
-    Instance.new("Frame")
+local Main = Instance.new("Frame")
 
-Main.Size =
-    UDim2.new(
-        0,
-        260,
-        0,
-        340
-    )
-
-Main.Position =
-    UDim2.new(
-        0.5,
-        -130,
-        0.5,
-        -170
-    )
+Main.Size = UDim2.new(0, 260, 0, 340)
+Main.Position = UDim2.new(0.5, -130, 0.5, -170)
 
 Main.BackgroundColor3 =
-    Color3.fromRGB(
-        30,
-        30,
-        30
-    )
+    Color3.fromRGB(30, 30, 30)
 
-Main.BorderSizePixel =
-    0
-
-Main.Active =
-    true
-
-Main.Parent =
-    ScreenGui
-
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Parent = ScreenGui
 
 local MainCorner =
     Instance.new("UICorner")
@@ -415,8 +316,7 @@ local MainCorner =
 MainCorner.CornerRadius =
     UDim.new(0, 10)
 
-MainCorner.Parent =
-    Main
+MainCorner.Parent = Main
 
 
 --// =========================================================
@@ -427,29 +327,14 @@ local TitleBar =
     Instance.new("Frame")
 
 TitleBar.Size =
-    UDim2.new(
-        1,
-        0,
-        0,
-        40
-    )
+    UDim2.new(1, 0, 0, 40)
 
 TitleBar.BackgroundColor3 =
-    Color3.fromRGB(
-        45,
-        45,
-        45
-    )
+    Color3.fromRGB(45, 45, 45)
 
-TitleBar.BorderSizePixel =
-    0
-
-TitleBar.Active =
-    true
-
-TitleBar.Parent =
-    Main
-
+TitleBar.BorderSizePixel = 0
+TitleBar.Active = true
+TitleBar.Parent = Main
 
 local TitleCorner =
     Instance.new("UICorner")
@@ -457,8 +342,7 @@ local TitleCorner =
 TitleCorner.CornerRadius =
     UDim.new(0, 10)
 
-TitleCorner.Parent =
-    TitleBar
+TitleCorner.Parent = TitleBar
 
 
 --// =========================================================
@@ -469,45 +353,21 @@ local Title =
     Instance.new("TextLabel")
 
 Title.Size =
-    UDim2.new(
-        1,
-        -125,
-        1,
-        0
-    )
+    UDim2.new(1, -125, 1, 0)
 
 Title.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        0
-    )
+    UDim2.new(0, 10, 0, 0)
 
-Title.BackgroundTransparency =
-    1
-
-Title.Text =
-    "Auto Farm"
+Title.BackgroundTransparency = 1
+Title.Text = "Auto Farm"
 
 Title.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-Title.TextSize =
-    20
-
-Title.Font =
-    Enum.Font.GothamBold
-
-Title.TextXAlignment =
-    Enum.TextXAlignment.Left
-
-Title.Parent =
-    TitleBar
+Title.TextSize = 20
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TitleBar
 
 
 --// =========================================================
@@ -518,51 +378,23 @@ local StatsButton =
     Instance.new("TextButton")
 
 StatsButton.Size =
-    UDim2.new(
-        0,
-        65,
-        0,
-        28
-    )
+    UDim2.new(0, 65, 0, 28)
 
 StatsButton.Position =
-    UDim2.new(
-        1,
-        -105,
-        0,
-        6
-    )
+    UDim2.new(1, -105, 0, 6)
 
--- Light blue
 StatsButton.BackgroundColor3 =
-    Color3.fromRGB(
-        90,
-        185,
-        255
-    )
+    Color3.fromRGB(90, 185, 255)
 
-StatsButton.Text =
-    "Stats"
+StatsButton.Text = "Stats"
 
 StatsButton.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-StatsButton.TextSize =
-    14
-
-StatsButton.Font =
-    Enum.Font.GothamBold
-
-StatsButton.BorderSizePixel =
-    0
-
-StatsButton.Parent =
-    TitleBar
-
+StatsButton.TextSize = 14
+StatsButton.Font = Enum.Font.GothamBold
+StatsButton.BorderSizePixel = 0
+StatsButton.Parent = TitleBar
 
 local StatsButtonCorner =
     Instance.new("UICorner")
@@ -570,8 +402,7 @@ local StatsButtonCorner =
 StatsButtonCorner.CornerRadius =
     UDim.new(0, 6)
 
-StatsButtonCorner.Parent =
-    StatsButton
+StatsButtonCorner.Parent = StatsButton
 
 
 --// =========================================================
@@ -582,50 +413,23 @@ local Close =
     Instance.new("TextButton")
 
 Close.Size =
-    UDim2.new(
-        0,
-        30,
-        0,
-        30
-    )
+    UDim2.new(0, 30, 0, 30)
 
 Close.Position =
-    UDim2.new(
-        1,
-        -35,
-        0,
-        5
-    )
+    UDim2.new(1, -35, 0, 5)
 
 Close.BackgroundColor3 =
-    Color3.fromRGB(
-        180,
-        60,
-        60
-    )
+    Color3.fromRGB(180, 60, 60)
 
-Close.Text =
-    "X"
+Close.Text = "X"
 
 Close.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-Close.Font =
-    Enum.Font.GothamBold
-
-Close.TextSize =
-    16
-
-Close.BorderSizePixel =
-    0
-
-Close.Parent =
-    TitleBar
-
+Close.Font = Enum.Font.GothamBold
+Close.TextSize = 16
+Close.BorderSizePixel = 0
+Close.Parent = TitleBar
 
 local CloseCorner =
     Instance.new("UICorner")
@@ -633,14 +437,10 @@ local CloseCorner =
 CloseCorner.CornerRadius =
     UDim.new(0, 6)
 
-CloseCorner.Parent =
-    Close
-
+CloseCorner.Parent = Close
 
 Close.MouseButton1Click:Connect(function()
-
     cleanup()
-
 end)
 
 
@@ -652,37 +452,17 @@ local StatsPopup =
     Instance.new("Frame")
 
 StatsPopup.Size =
-    UDim2.new(
-        0,
-        210,
-        0,
-        165
-    )
+    UDim2.new(0, 210, 0, 165)
 
 StatsPopup.Position =
-    UDim2.new(
-        1,
-        10,
-        0,
-        0
-    )
+    UDim2.new(1, 10, 0, 0)
 
 StatsPopup.BackgroundColor3 =
-    Color3.fromRGB(
-        25,
-        25,
-        25
-    )
+    Color3.fromRGB(25, 25, 25)
 
-StatsPopup.BorderSizePixel =
-    0
-
-StatsPopup.Visible =
-    false
-
-StatsPopup.Parent =
-    Main
-
+StatsPopup.BorderSizePixel = 0
+StatsPopup.Visible = false
+StatsPopup.Parent = Main
 
 local StatsPopupCorner =
     Instance.new("UICorner")
@@ -690,261 +470,123 @@ local StatsPopupCorner =
 StatsPopupCorner.CornerRadius =
     UDim.new(0, 10)
 
-StatsPopupCorner.Parent =
-    StatsPopup
+StatsPopupCorner.Parent = StatsPopup
 
 
 local StatsTitle =
     Instance.new("TextLabel")
 
 StatsTitle.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        32
-    )
+    UDim2.new(1, -20, 0, 32)
 
 StatsTitle.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        5
-    )
+    UDim2.new(0, 10, 0, 5)
 
-StatsTitle.BackgroundTransparency =
-    1
-
-StatsTitle.Text =
-    "Hatch Stats"
+StatsTitle.BackgroundTransparency = 1
+StatsTitle.Text = "Session Hatch Stats"
 
 StatsTitle.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-StatsTitle.TextSize =
-    17
+StatsTitle.TextSize = 17
+StatsTitle.Font = Enum.Font.GothamBold
+StatsTitle.TextXAlignment = Enum.TextXAlignment.Left
+StatsTitle.Parent = StatsPopup
 
-StatsTitle.Font =
-    Enum.Font.GothamBold
-
-StatsTitle.TextXAlignment =
-    Enum.TextXAlignment.Left
-
-StatsTitle.Parent =
-    StatsPopup
-
-
---// =========================================================
---// EGGS STAT
---// =========================================================
 
 local EggsStat =
     Instance.new("TextLabel")
 
 EggsStat.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        26
-    )
+    UDim2.new(1, -20, 0, 26)
 
 EggsStat.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        43
-    )
+    UDim2.new(0, 10, 0, 43)
 
-EggsStat.BackgroundTransparency =
-    1
-
-EggsStat.Text =
-    "Eggs: Loading..."
+EggsStat.BackgroundTransparency = 1
+EggsStat.Text = "Eggs: Loading..."
 
 EggsStat.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-EggsStat.TextSize =
-    15
+EggsStat.TextSize = 15
+EggsStat.Font = Enum.Font.Gotham
+EggsStat.TextXAlignment = Enum.TextXAlignment.Left
+EggsStat.Parent = StatsPopup
 
-EggsStat.Font =
-    Enum.Font.Gotham
-
-EggsStat.TextXAlignment =
-    Enum.TextXAlignment.Left
-
-EggsStat.Parent =
-    StatsPopup
-
-
---// =========================================================
---// SECRET STAT
---// =========================================================
 
 local SecretStat =
     Instance.new("TextLabel")
 
 SecretStat.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        26
-    )
+    UDim2.new(1, -20, 0, 26)
 
 SecretStat.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        71
-    )
+    UDim2.new(0, 10, 0, 71)
 
-SecretStat.BackgroundTransparency =
-    1
-
-SecretStat.Text =
-    "Secrets: Loading..."
+SecretStat.BackgroundTransparency = 1
+SecretStat.Text = "Secrets: Loading..."
 
 SecretStat.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-SecretStat.TextSize =
-    15
+SecretStat.TextSize = 15
+SecretStat.Font = Enum.Font.Gotham
+SecretStat.TextXAlignment = Enum.TextXAlignment.Left
+SecretStat.Parent = StatsPopup
 
-SecretStat.Font =
-    Enum.Font.Gotham
-
-SecretStat.TextXAlignment =
-    Enum.TextXAlignment.Left
-
-SecretStat.Parent =
-    StatsPopup
-
-
---// =========================================================
---// DIVINE STAT
---// =========================================================
 
 local DivineStat =
     Instance.new("TextLabel")
 
 DivineStat.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        26
-    )
+    UDim2.new(1, -20, 0, 26)
 
 DivineStat.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        99
-    )
+    UDim2.new(0, 10, 0, 99)
 
-DivineStat.BackgroundTransparency =
-    1
-
-DivineStat.Text =
-    "Divines: Loading..."
+DivineStat.BackgroundTransparency = 1
+DivineStat.Text = "Divines: Loading..."
 
 DivineStat.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-DivineStat.TextSize =
-    15
+DivineStat.TextSize = 15
+DivineStat.Font = Enum.Font.Gotham
+DivineStat.TextXAlignment = Enum.TextXAlignment.Left
+DivineStat.Parent = StatsPopup
 
-DivineStat.Font =
-    Enum.Font.Gotham
-
-DivineStat.TextXAlignment =
-    Enum.TextXAlignment.Left
-
-DivineStat.Parent =
-    StatsPopup
-
-
---// =========================================================
---// UPDATED LABEL
---// =========================================================
 
 local StatsUpdated =
     Instance.new("TextLabel")
 
 StatsUpdated.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        25
-    )
+    UDim2.new(1, -20, 0, 25)
 
 StatsUpdated.Position =
-    UDim2.new(
-        0,
-        10,
-        1,
-        -31
-    )
+    UDim2.new(0, 10, 1, -31)
 
-StatsUpdated.BackgroundTransparency =
-    1
+StatsUpdated.BackgroundTransparency = 1
 
 StatsUpdated.Text =
-    "Updates every 60 seconds"
+    "Session • updates every 60s"
 
 StatsUpdated.TextColor3 =
-    Color3.fromRGB(
-        155,
-        155,
-        155
-    )
+    Color3.fromRGB(155, 155, 155)
 
-StatsUpdated.TextSize =
-    11
-
-StatsUpdated.Font =
-    Enum.Font.Gotham
-
-StatsUpdated.TextXAlignment =
-    Enum.TextXAlignment.Left
-
-StatsUpdated.Parent =
-    StatsPopup
+StatsUpdated.TextSize = 11
+StatsUpdated.Font = Enum.Font.Gotham
+StatsUpdated.TextXAlignment = Enum.TextXAlignment.Left
+StatsUpdated.Parent = StatsPopup
 
 
 --// =========================================================
 --// DRAGGING
 --// =========================================================
 
-local dragging =
-    false
-
+local dragging = false
 local dragStart
 local startPosition
-
 
 trackConnection(
     TitleBar.InputBegan:Connect(function(input)
@@ -954,20 +596,14 @@ trackConnection(
             or input.UserInputType ==
             Enum.UserInputType.Touch then
 
-            dragging =
-                true
-
-            dragStart =
-                input.Position
-
-            startPosition =
-                Main.Position
+            dragging = true
+            dragStart = input.Position
+            startPosition = Main.Position
 
         end
 
     end)
 )
-
 
 trackConnection(
     UserInputService.InputEnded:Connect(function(input)
@@ -977,14 +613,12 @@ trackConnection(
             or input.UserInputType ==
             Enum.UserInputType.Touch then
 
-            dragging =
-                false
+            dragging = false
 
         end
 
     end)
 )
-
 
 trackConnection(
     UserInputService.InputChanged:Connect(function(input)
@@ -993,21 +627,16 @@ trackConnection(
             return
         end
 
-
         if input.UserInputType ~=
             Enum.UserInputType.MouseMovement
             and input.UserInputType ~=
             Enum.UserInputType.Touch then
 
             return
-
         end
 
-
         local delta =
-            input.Position -
-            dragStart
-
+            input.Position - dragStart
 
         Main.Position =
             UDim2.new(
@@ -1035,57 +664,25 @@ local function createToggle(
     local Button =
         Instance.new("TextButton")
 
-
     Button.Size =
-        UDim2.new(
-            1,
-            -30,
-            0,
-            45
-        )
-
+        UDim2.new(1, -30, 0, 45)
 
     Button.Position =
-        UDim2.new(
-            0,
-            15,
-            0,
-            yPosition
-        )
-
+        UDim2.new(0, 15, 0, yPosition)
 
     Button.BackgroundColor3 =
-        Color3.fromRGB(
-            150,
-            55,
-            55
-        )
-
+        Color3.fromRGB(150, 55, 55)
 
     Button.Text =
         name .. ": OFF"
 
-
     Button.TextColor3 =
-        Color3.fromRGB(
-            255,
-            255,
-            255
-        )
+        Color3.fromRGB(255, 255, 255)
 
-
-    Button.TextSize =
-        16
-
-    Button.Font =
-        Enum.Font.GothamBold
-
-    Button.BorderSizePixel =
-        0
-
-    Button.Parent =
-        Main
-
+    Button.TextSize = 16
+    Button.Font = Enum.Font.GothamBold
+    Button.BorderSizePixel = 0
+    Button.Parent = Main
 
     local Corner =
         Instance.new("UICorner")
@@ -1093,21 +690,17 @@ local function createToggle(
     Corner.CornerRadius =
         UDim.new(0, 8)
 
-    Corner.Parent =
-        Button
-
+    Corner.Parent = Button
 
     Button.MouseButton1Click:Connect(function()
 
         Settings[settingName] =
             not Settings[settingName]
 
-
         if Settings[settingName] then
 
             Button.Text =
                 name .. ": ON"
-
 
             Button.BackgroundColor3 =
                 Color3.fromRGB(
@@ -1121,7 +714,6 @@ local function createToggle(
             Button.Text =
                 name .. ": OFF"
 
-
             Button.BackgroundColor3 =
                 Color3.fromRGB(
                     150,
@@ -1133,9 +725,7 @@ local function createToggle(
 
     end)
 
-
     return Button
-
 end
 
 
@@ -1157,63 +747,31 @@ createToggle(
 
 
 --// =========================================================
---// HATCH EGGS BUTTON
+--// HATCH BUTTON
 --// =========================================================
 
 local HatchButton =
     Instance.new("TextButton")
 
-
 HatchButton.Size =
-    UDim2.new(
-        1,
-        -30,
-        0,
-        45
-    )
-
+    UDim2.new(1, -30, 0, 45)
 
 HatchButton.Position =
-    UDim2.new(
-        0,
-        15,
-        0,
-        165
-    )
-
+    UDim2.new(0, 15, 0, 165)
 
 HatchButton.BackgroundColor3 =
-    Color3.fromRGB(
-        65,
-        90,
-        160
-    )
-
+    Color3.fromRGB(65, 90, 160)
 
 HatchButton.Text =
     "Hatch Eggs  ▼"
 
-
 HatchButton.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-
-HatchButton.TextSize =
-    16
-
-HatchButton.Font =
-    Enum.Font.GothamBold
-
-HatchButton.BorderSizePixel =
-    0
-
-HatchButton.Parent =
-    Main
-
+HatchButton.TextSize = 16
+HatchButton.Font = Enum.Font.GothamBold
+HatchButton.BorderSizePixel = 0
+HatchButton.Parent = Main
 
 local HatchCorner =
     Instance.new("UICorner")
@@ -1221,8 +779,7 @@ local HatchCorner =
 HatchCorner.CornerRadius =
     UDim.new(0, 8)
 
-HatchCorner.Parent =
-    HatchButton
+HatchCorner.Parent = HatchButton
 
 
 createToggle(
@@ -1245,42 +802,18 @@ createToggle(
 local EggPopup =
     Instance.new("Frame")
 
-
 EggPopup.Size =
-    UDim2.new(
-        0,
-        240,
-        0,
-        340
-    )
-
+    UDim2.new(0, 240, 0, 340)
 
 EggPopup.Position =
-    UDim2.new(
-        1,
-        10,
-        0,
-        40
-    )
-
+    UDim2.new(1, 10, 0, 40)
 
 EggPopup.BackgroundColor3 =
-    Color3.fromRGB(
-        25,
-        25,
-        25
-    )
+    Color3.fromRGB(25, 25, 25)
 
-
-EggPopup.BorderSizePixel =
-    0
-
-EggPopup.Visible =
-    false
-
-EggPopup.Parent =
-    Main
-
+EggPopup.BorderSizePixel = 0
+EggPopup.Visible = false
+EggPopup.Parent = Main
 
 local PopupCorner =
     Instance.new("UICorner")
@@ -1288,119 +821,51 @@ local PopupCorner =
 PopupCorner.CornerRadius =
     UDim.new(0, 10)
 
-PopupCorner.Parent =
-    EggPopup
+PopupCorner.Parent = EggPopup
 
-
---// =========================================================
---// EGG POPUP TITLE
---// =========================================================
 
 local PopupTitle =
     Instance.new("TextLabel")
 
-
 PopupTitle.Size =
-    UDim2.new(
-        1,
-        -40,
-        0,
-        35
-    )
-
+    UDim2.new(1, -40, 0, 35)
 
 PopupTitle.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        5
-    )
+    UDim2.new(0, 10, 0, 5)
 
-
-PopupTitle.BackgroundTransparency =
-    1
-
-
-PopupTitle.Text =
-    "Select Egg"
-
+PopupTitle.BackgroundTransparency = 1
+PopupTitle.Text = "Select Egg"
 
 PopupTitle.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-
-PopupTitle.TextSize =
-    18
-
-PopupTitle.Font =
-    Enum.Font.GothamBold
-
-PopupTitle.TextXAlignment =
-    Enum.TextXAlignment.Left
-
-PopupTitle.Parent =
-    EggPopup
+PopupTitle.TextSize = 18
+PopupTitle.Font = Enum.Font.GothamBold
+PopupTitle.TextXAlignment = Enum.TextXAlignment.Left
+PopupTitle.Parent = EggPopup
 
 
 local PopupClose =
     Instance.new("TextButton")
 
-
 PopupClose.Size =
-    UDim2.new(
-        0,
-        30,
-        0,
-        30
-    )
-
+    UDim2.new(0, 30, 0, 30)
 
 PopupClose.Position =
-    UDim2.new(
-        1,
-        -35,
-        0,
-        5
-    )
-
+    UDim2.new(1, -35, 0, 5)
 
 PopupClose.BackgroundColor3 =
-    Color3.fromRGB(
-        150,
-        55,
-        55
-    )
+    Color3.fromRGB(150, 55, 55)
 
-
-PopupClose.Text =
-    "X"
-
+PopupClose.Text = "X"
 
 PopupClose.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-
-PopupClose.Font =
-    Enum.Font.GothamBold
-
-PopupClose.TextSize =
-    14
-
-PopupClose.BorderSizePixel =
-    0
-
-PopupClose.Parent =
-    EggPopup
-
+PopupClose.Font = Enum.Font.GothamBold
+PopupClose.TextSize = 14
+PopupClose.BorderSizePixel = 0
+PopupClose.Parent = EggPopup
 
 local PopupCloseCorner =
     Instance.new("UICorner")
@@ -1408,15 +873,10 @@ local PopupCloseCorner =
 PopupCloseCorner.CornerRadius =
     UDim.new(0, 6)
 
-PopupCloseCorner.Parent =
-    PopupClose
-
+PopupCloseCorner.Parent = PopupClose
 
 PopupClose.MouseButton1Click:Connect(function()
-
-    EggPopup.Visible =
-        false
-
+    EggPopup.Visible = false
 end)
 
 
@@ -1427,57 +887,25 @@ end)
 local SelectedLabel =
     Instance.new("TextLabel")
 
-
 SelectedLabel.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        30
-    )
-
+    UDim2.new(1, -20, 0, 30)
 
 SelectedLabel.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        40
-    )
-
+    UDim2.new(0, 10, 0, 40)
 
 SelectedLabel.BackgroundColor3 =
-    Color3.fromRGB(
-        40,
-        40,
-        40
-    )
-
+    Color3.fromRGB(40, 40, 40)
 
 SelectedLabel.Text =
-    "Selected: " ..
-    SelectedEgg
-
+    "Selected: " .. SelectedEgg
 
 SelectedLabel.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-
-SelectedLabel.TextSize =
-    14
-
-SelectedLabel.Font =
-    Enum.Font.GothamBold
-
-SelectedLabel.BorderSizePixel =
-    0
-
-SelectedLabel.Parent =
-    EggPopup
+SelectedLabel.TextSize = 14
+SelectedLabel.Font = Enum.Font.GothamBold
+SelectedLabel.BorderSizePixel = 0
+SelectedLabel.Parent = EggPopup
 
 
 --// =========================================================
@@ -1487,55 +915,23 @@ SelectedLabel.Parent =
 local EggScroll =
     Instance.new("ScrollingFrame")
 
-
 EggScroll.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        205
-    )
-
+    UDim2.new(1, -20, 0, 205)
 
 EggScroll.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        80
-    )
-
+    UDim2.new(0, 10, 0, 80)
 
 EggScroll.BackgroundColor3 =
-    Color3.fromRGB(
-        35,
-        35,
-        35
-    )
+    Color3.fromRGB(35, 35, 35)
 
-
-EggScroll.BorderSizePixel =
-    0
-
-EggScroll.ScrollBarThickness =
-    6
-
-
-EggScroll.CanvasSize =
-    UDim2.new(
-        0,
-        0,
-        0,
-        0
-    )
-
+EggScroll.BorderSizePixel = 0
+EggScroll.ScrollBarThickness = 6
+EggScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
 
 EggScroll.AutomaticCanvasSize =
     Enum.AutomaticSize.Y
 
-
-EggScroll.Parent =
-    EggPopup
+EggScroll.Parent = EggPopup
 
 
 local EggLayout =
@@ -1547,8 +943,7 @@ EggLayout.Padding =
 EggLayout.SortOrder =
     Enum.SortOrder.LayoutOrder
 
-EggLayout.Parent =
-    EggScroll
+EggLayout.Parent = EggScroll
 
 
 local EggPadding =
@@ -1566,8 +961,7 @@ EggPadding.PaddingLeft =
 EggPadding.PaddingRight =
     UDim.new(0, 5)
 
-EggPadding.Parent =
-    EggScroll
+EggPadding.Parent = EggScroll
 
 
 --// =========================================================
@@ -1576,57 +970,26 @@ EggPadding.Parent =
 
 local EggButtons = {}
 
-
 for _, eggName in ipairs(Eggs) do
 
     local EggButton =
         Instance.new("TextButton")
 
-
     EggButton.Size =
-        UDim2.new(
-            1,
-            -10,
-            0,
-            38
-        )
-
+        UDim2.new(1, -10, 0, 38)
 
     EggButton.BackgroundColor3 =
-        Color3.fromRGB(
-            60,
-            60,
-            60
-        )
+        Color3.fromRGB(60, 60, 60)
 
-
-    EggButton.Text =
-        eggName
-
+    EggButton.Text = eggName
 
     EggButton.TextColor3 =
-        Color3.fromRGB(
-            255,
-            255,
-            255
-        )
+        Color3.fromRGB(255, 255, 255)
 
-
-    EggButton.TextSize =
-        15
-
-
-    EggButton.Font =
-        Enum.Font.GothamBold
-
-
-    EggButton.BorderSizePixel =
-        0
-
-
-    EggButton.Parent =
-        EggScroll
-
+    EggButton.TextSize = 15
+    EggButton.Font = Enum.Font.GothamBold
+    EggButton.BorderSizePixel = 0
+    EggButton.Parent = EggScroll
 
     local EggCorner =
         Instance.new("UICorner")
@@ -1634,9 +997,7 @@ for _, eggName in ipairs(Eggs) do
     EggCorner.CornerRadius =
         UDim.new(0, 6)
 
-    EggCorner.Parent =
-        EggButton
-
+    EggCorner.Parent = EggButton
 
     EggButtons[eggName] =
         EggButton
@@ -1647,11 +1008,8 @@ for _, eggName in ipairs(Eggs) do
         SelectedEgg =
             eggName
 
-
         SelectedLabel.Text =
-            "Selected: " ..
-            eggName
-
+            "Selected: " .. eggName
 
         for _, button in pairs(EggButtons) do
 
@@ -1663,7 +1021,6 @@ for _, eggName in ipairs(Eggs) do
                 )
 
         end
-
 
         EggButton.BackgroundColor3 =
             Color3.fromRGB(
@@ -1678,73 +1035,35 @@ end
 
 
 EggButtons["Basic"].BackgroundColor3 =
-    Color3.fromRGB(
-        55,
-        150,
-        75
-    )
+    Color3.fromRGB(55, 150, 75)
 
 
 --// =========================================================
---// AUTO HATCH BUTTON
+--// AUTO HATCH TOGGLE
 --// =========================================================
 
 local AutoHatchButton =
     Instance.new("TextButton")
 
-
 AutoHatchButton.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        40
-    )
-
+    UDim2.new(1, -20, 0, 40)
 
 AutoHatchButton.Position =
-    UDim2.new(
-        0,
-        10,
-        1,
-        -50
-    )
-
+    UDim2.new(0, 10, 1, -50)
 
 AutoHatchButton.BackgroundColor3 =
-    Color3.fromRGB(
-        150,
-        55,
-        55
-    )
-
+    Color3.fromRGB(150, 55, 55)
 
 AutoHatchButton.Text =
     "Auto Hatch: OFF"
 
-
 AutoHatchButton.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-
-AutoHatchButton.TextSize =
-    15
-
-
-AutoHatchButton.Font =
-    Enum.Font.GothamBold
-
-
-AutoHatchButton.BorderSizePixel =
-    0
-
-
-AutoHatchButton.Parent =
-    EggPopup
+AutoHatchButton.TextSize = 15
+AutoHatchButton.Font = Enum.Font.GothamBold
+AutoHatchButton.BorderSizePixel = 0
+AutoHatchButton.Parent = EggPopup
 
 
 AutoHatchButton.MouseButton1Click:Connect(function()
@@ -1752,12 +1071,10 @@ AutoHatchButton.MouseButton1Click:Connect(function()
     Settings.Hatch =
         not Settings.Hatch
 
-
     if Settings.Hatch then
 
         AutoHatchButton.Text =
             "Auto Hatch: ON"
-
 
         AutoHatchButton.BackgroundColor3 =
             Color3.fromRGB(
@@ -1766,10 +1083,8 @@ AutoHatchButton.MouseButton1Click:Connect(function()
                 75
             )
 
-
         HatchButton.Text =
             "Hatch Eggs: ON  ▼"
-
 
         HatchButton.BackgroundColor3 =
             Color3.fromRGB(
@@ -1783,7 +1098,6 @@ AutoHatchButton.MouseButton1Click:Connect(function()
         AutoHatchButton.Text =
             "Auto Hatch: OFF"
 
-
         AutoHatchButton.BackgroundColor3 =
             Color3.fromRGB(
                 150,
@@ -1791,10 +1105,8 @@ AutoHatchButton.MouseButton1Click:Connect(function()
                 55
             )
 
-
         HatchButton.Text =
             "Hatch Eggs  ▼"
-
 
         HatchButton.BackgroundColor3 =
             Color3.fromRGB(
@@ -1813,6 +1125,682 @@ HatchButton.MouseButton1Click:Connect(function()
     EggPopup.Visible =
         not EggPopup.Visible
 
+    if EggPopup.Visible then
+        StatsPopup.Visible = false
+    end
+
+end)
+
+
+--// =========================================================
+--// QUEST TABLE SEARCH
+--// =========================================================
+
+local function looksLikeQuestList(tbl)
+
+    if type(tbl) ~= "table" then
+        return false
+    end
+
+    local found = 0
+
+    for _, value in pairs(tbl) do
+
+        if type(value) == "table"
+            and tonumber(value.Id)
+            and value.endAmount ~= nil then
+
+            found += 1
+
+        end
+
+    end
+
+    return found > 0
+end
+
+
+local function findQuestList(
+    tbl,
+    depth,
+    visited
+)
+
+    if type(tbl) ~= "table" then
+        return nil
+    end
+
+    depth = depth or 0
+    visited = visited or {}
+
+    if depth > 6
+        or visited[tbl] then
+
+        return nil
+
+    end
+
+    visited[tbl] = true
+
+    if looksLikeQuestList(tbl) then
+        return tbl
+    end
+
+    for _, value in pairs(tbl) do
+
+        if type(value) == "table" then
+
+            local result =
+                findQuestList(
+                    value,
+                    depth + 1,
+                    visited
+                )
+
+            if result then
+                return result
+            end
+
+        end
+
+    end
+
+    return nil
+end
+
+
+--// =========================================================
+--// STAT SEARCH
+--// =========================================================
+
+local function findStat(
+    tbl,
+    statName,
+    depth,
+    visited
+)
+
+    if type(tbl) ~= "table" then
+        return nil
+    end
+
+    depth = depth or 0
+    visited = visited or {}
+
+    if depth > 6
+        or visited[tbl] then
+
+        return nil
+
+    end
+
+    visited[tbl] = true
+
+    if tbl[statName] ~= nil then
+
+        local value =
+            tonumber(
+                tbl[statName]
+            )
+
+        if value ~= nil then
+            return value
+        end
+
+    end
+
+    for _, value in pairs(tbl) do
+
+        if type(value) == "table" then
+
+            local result =
+                findStat(
+                    value,
+                    statName,
+                    depth + 1,
+                    visited
+                )
+
+            if result ~= nil then
+                return result
+            end
+
+        end
+
+    end
+
+    return nil
+end
+
+
+--// =========================================================
+--// REPLICA DISCOVERY
+--// =========================================================
+
+local QuestReplica = nil
+local CachedQuestList = nil
+
+local REPLICA_SEARCH_MAX = 5000
+local REPLICA_BATCH_SIZE = 100
+local ReplicaSearchCursor = 1
+
+
+local function getReplica(id)
+
+    local success, replica =
+        pcall(function()
+
+            return ReplicaController
+                .GetReplicaById(id)
+
+        end)
+
+    if success then
+        return replica
+    end
+
+    return nil
+end
+
+
+local function searchReplicaBatch()
+
+    if QuestReplica
+        and QuestReplica.Data then
+
+        if CachedQuestList
+            and looksLikeQuestList(
+                CachedQuestList
+            ) then
+
+            return QuestReplica
+        end
+
+        CachedQuestList =
+            findQuestList(
+                QuestReplica.Data
+            )
+
+        if CachedQuestList then
+            return QuestReplica
+        end
+
+    end
+
+
+    QuestReplica = nil
+    CachedQuestList = nil
+
+
+    for _ = 1, REPLICA_BATCH_SIZE do
+
+        local id =
+            ReplicaSearchCursor
+
+        ReplicaSearchCursor += 1
+
+        if ReplicaSearchCursor >
+            REPLICA_SEARCH_MAX then
+
+            ReplicaSearchCursor = 1
+        end
+
+
+        local replica =
+            getReplica(id)
+
+
+        if replica
+            and replica.Data then
+
+            local questList =
+                findQuestList(
+                    replica.Data
+                )
+
+            if questList then
+
+                QuestReplica = replica
+                CachedQuestList = questList
+
+                print(
+                    "[Auto Farm] Profile data cached"
+                )
+
+                return replica
+
+            end
+
+        end
+
+    end
+
+    return nil
+end
+
+
+local function ensureReplicaForStats(
+    fullSearch
+)
+
+    if QuestReplica
+        and QuestReplica.Data then
+
+        return QuestReplica
+    end
+
+
+    local maxBatches =
+        fullSearch and 50 or 2
+
+
+    for _ = 1, maxBatches do
+
+        if not alive then
+            return nil
+        end
+
+        local replica =
+            searchReplicaBatch()
+
+        if replica then
+            return replica
+        end
+
+        task.wait(0.03)
+
+    end
+
+    return nil
+end
+
+
+local function getCurrentQuests()
+
+    if QuestReplica
+        and QuestReplica.Data then
+
+        if CachedQuestList
+            and looksLikeQuestList(
+                CachedQuestList
+            ) then
+
+            return CachedQuestList
+        end
+
+        CachedQuestList =
+            findQuestList(
+                QuestReplica.Data
+            )
+
+        if CachedQuestList then
+            return CachedQuestList
+        end
+
+    end
+
+    searchReplicaBatch()
+
+    return CachedQuestList
+end
+
+
+local function getCurrentStat(
+    statName
+)
+
+    if not QuestReplica
+        or not QuestReplica.Data then
+
+        return 0
+    end
+
+    local result =
+        findStat(
+            QuestReplica.Data,
+            statName
+        )
+
+    return result or 0
+end
+
+
+--// =========================================================
+--// SESSION STATS
+--// =========================================================
+
+local SessionBaseline =
+    _G.__AUTO_FARM_SESSION_BASELINE
+
+if not SessionBaseline then
+
+    SessionBaseline = {
+        Initialized = false,
+
+        Eggs = 0,
+        Secrets = 0,
+        Divines = 0
+    }
+
+    _G.__AUTO_FARM_SESSION_BASELINE =
+        SessionBaseline
+end
+
+
+local function getStatFromCandidates(
+    candidates
+)
+
+    if not QuestReplica
+        or not QuestReplica.Data then
+
+        return nil
+    end
+
+    for _, statName in ipairs(candidates) do
+
+        local value =
+            findStat(
+                QuestReplica.Data,
+                statName
+            )
+
+        if value ~= nil then
+            return value
+        end
+
+    end
+
+    return nil
+end
+
+
+local function getRawHatchStats()
+
+    local eggs =
+        getStatFromCandidates({
+            "Eggs",
+            "EggsHatched",
+            "EggsOpened",
+            "TotalEggsHatched",
+            "TotalEggsOpened",
+            "TotalEggs"
+        })
+
+
+    local secrets =
+        getStatFromCandidates({
+            "SecretHatched",
+            "SecretsHatched",
+            "SecretPetsHatched",
+            "SecretHatches",
+            "Secrets"
+        })
+
+
+    local divines =
+        getStatFromCandidates({
+            "DivineHatched",
+            "DivinesHatched",
+            "DivinePetsHatched",
+            "DivineHatches",
+            "Divines",
+            "TotalDivinesHatched"
+        })
+
+
+    return eggs, secrets, divines
+end
+
+
+local function formatNumber(number)
+
+    if number == nil then
+        return "?"
+    end
+
+    number =
+        math.floor(number)
+
+    local formatted =
+        tostring(number)
+
+    while true do
+
+        local newFormatted, replacements =
+            string.gsub(
+                formatted,
+                "^(-?%d+)(%d%d%d)",
+                "%1,%2"
+            )
+
+        formatted =
+            newFormatted
+
+        if replacements == 0 then
+            break
+        end
+
+    end
+
+    return formatted
+end
+
+
+local function initializeSessionStats()
+
+    if SessionBaseline.Initialized then
+        return true
+    end
+
+    local replica =
+        ensureReplicaForStats(true)
+
+    if not replica then
+        return false
+    end
+
+
+    local eggs,
+        secrets,
+        divines =
+        getRawHatchStats()
+
+
+    if eggs == nil
+        and secrets == nil
+        and divines == nil then
+
+        return false
+    end
+
+
+    SessionBaseline.Eggs =
+        eggs or 0
+
+    SessionBaseline.Secrets =
+        secrets or 0
+
+    SessionBaseline.Divines =
+        divines or 0
+
+    SessionBaseline.Initialized =
+        true
+
+
+    print(
+        "[Auto Farm] Session baseline saved"
+    )
+
+
+    return true
+end
+
+
+local function updateStats(
+    fullSearch
+)
+
+    StatsUpdated.Text =
+        "Updating..."
+
+
+    local replica =
+        ensureReplicaForStats(
+            fullSearch
+        )
+
+
+    if not replica then
+
+        EggsStat.Text =
+            "Eggs: ?"
+
+        SecretStat.Text =
+            "Secrets: ?"
+
+        DivineStat.Text =
+            "Divines: ?"
+
+        StatsUpdated.Text =
+            "Stats not found"
+
+        return
+    end
+
+
+    if not SessionBaseline.Initialized then
+
+        if not initializeSessionStats() then
+
+            StatsUpdated.Text =
+                "Waiting for stats..."
+
+            return
+
+        end
+
+    end
+
+
+    local currentEggs,
+        currentSecrets,
+        currentDivines =
+        getRawHatchStats()
+
+
+    local sessionEggs =
+        math.max(
+            0,
+            (currentEggs or SessionBaseline.Eggs)
+            - SessionBaseline.Eggs
+        )
+
+
+    local sessionSecrets =
+        math.max(
+            0,
+            (currentSecrets or SessionBaseline.Secrets)
+            - SessionBaseline.Secrets
+        )
+
+
+    local sessionDivines =
+        math.max(
+            0,
+            (currentDivines or SessionBaseline.Divines)
+            - SessionBaseline.Divines
+        )
+
+
+    EggsStat.Text =
+        "Eggs: +" ..
+        formatNumber(sessionEggs)
+
+
+    SecretStat.Text =
+        "Secrets: +" ..
+        formatNumber(sessionSecrets)
+
+
+    DivineStat.Text =
+        "Divines: +" ..
+        formatNumber(sessionDivines)
+
+
+    StatsUpdated.Text =
+        "Session • updates every 60s"
+end
+
+
+--// =========================================================
+--// STATS BUTTON
+--// =========================================================
+
+StatsButton.MouseButton1Click:Connect(function()
+
+    StatsPopup.Visible =
+        not StatsPopup.Visible
+
+    if StatsPopup.Visible then
+
+        EggPopup.Visible = false
+
+        task.spawn(function()
+
+            pcall(function()
+                updateStats(true)
+            end)
+
+        end)
+
+    end
+
+end)
+
+
+--// =========================================================
+--// INITIALIZE SESSION BASELINE EARLY
+--// =========================================================
+
+task.spawn(function()
+
+    task.wait(2)
+
+    if alive
+        and not SessionBaseline.Initialized then
+
+        pcall(function()
+            initializeSessionStats()
+        end)
+
+    end
+
+end)
+
+
+--// =========================================================
+--// STATS UPDATE EVERY 60 SECONDS
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        task.wait(
+            STATS_UPDATE_DELAY
+        )
+
+        if not alive then
+            break
+        end
+
+        pcall(function()
+            updateStats(false)
+        end)
+
+    end
+
 end)
 
 
@@ -1826,10 +1814,7 @@ task.spawn(function()
 
         if not Settings.Auras then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -1841,9 +1826,7 @@ task.spawn(function()
                 or not Settings.Auras then
 
                 break
-
             end
-
 
             pcall(function()
 
@@ -1852,7 +1835,6 @@ task.spawn(function()
                     :InvokeServer(aura)
 
             end)
-
 
             task.wait(1)
 
@@ -1864,8 +1846,7 @@ end)
 
 
 --// =========================================================
---// MERCHANT
---// BUY WHOLE SPAWN STOCK
+--// MERCHANT - BUY WHOLE SPAWN STOCK
 --// =========================================================
 
 task.spawn(function()
@@ -1874,10 +1855,7 @@ task.spawn(function()
 
         if not Settings.Merchant then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -1891,7 +1869,6 @@ task.spawn(function()
                 or not Settings.Merchant then
 
                 break
-
             end
 
 
@@ -1934,10 +1911,7 @@ task.spawn(function()
         if not Settings.Hatch
             or Settings.AutoQuests then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -1965,8 +1939,7 @@ end)
 
 
 --// =========================================================
---// AUTO TAP
---// ~50 TAPS PER SECOND
+--// AUTO TAP - ~50 TAPS / SECOND
 --// =========================================================
 
 task.spawn(function()
@@ -1975,10 +1948,7 @@ task.spawn(function()
 
         if not Settings.AutoTap then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -2003,671 +1973,7 @@ end)
 
 
 --// =========================================================
---// QUEST TABLE SEARCH
---// =========================================================
-
-local function looksLikeQuestList(tbl)
-
-    if type(tbl) ~= "table" then
-        return false
-    end
-
-
-    local found =
-        0
-
-
-    for _, value in pairs(tbl) do
-
-        if type(value) == "table"
-            and tonumber(value.Id)
-            and value.endAmount ~= nil then
-
-            found += 1
-
-        end
-
-    end
-
-
-    return found > 0
-
-end
-
-
-local function findQuestList(
-    tbl,
-    depth,
-    visited
-)
-
-    if type(tbl) ~= "table" then
-        return nil
-    end
-
-
-    depth =
-        depth or 0
-
-
-    visited =
-        visited or {}
-
-
-    if depth > 6
-        or visited[tbl] then
-
-        return nil
-
-    end
-
-
-    visited[tbl] =
-        true
-
-
-    if looksLikeQuestList(tbl) then
-        return tbl
-    end
-
-
-    for _, value in pairs(tbl) do
-
-        if type(value) == "table" then
-
-            local result =
-                findQuestList(
-                    value,
-                    depth + 1,
-                    visited
-                )
-
-
-            if result then
-                return result
-            end
-
-        end
-
-    end
-
-
-    return nil
-
-end
-
-
---// =========================================================
---// FIND STAT
---// =========================================================
-
-local function findStat(
-    tbl,
-    statName,
-    depth,
-    visited
-)
-
-    if type(tbl) ~= "table" then
-        return nil
-    end
-
-
-    depth =
-        depth or 0
-
-
-    visited =
-        visited or {}
-
-
-    if depth > 6
-        or visited[tbl] then
-
-        return nil
-
-    end
-
-
-    visited[tbl] =
-        true
-
-
-    if tbl[statName] ~= nil then
-
-        local value =
-            tonumber(
-                tbl[statName]
-            )
-
-
-        if value ~= nil then
-            return value
-        end
-
-    end
-
-
-    for _, value in pairs(tbl) do
-
-        if type(value) == "table" then
-
-            local result =
-                findStat(
-                    value,
-                    statName,
-                    depth + 1,
-                    visited
-                )
-
-
-            if result ~= nil then
-                return result
-            end
-
-        end
-
-    end
-
-
-    return nil
-
-end
-
-
---// =========================================================
---// REPLICA DISCOVERY
---// =========================================================
-
-local QuestReplica =
-    nil
-
-local CachedQuestList =
-    nil
-
-
-local REPLICA_SEARCH_MAX =
-    5000
-
-local REPLICA_BATCH_SIZE =
-    100
-
-local ReplicaSearchCursor =
-    1
-
-
-local function getReplica(id)
-
-    local success, replica =
-        pcall(function()
-
-            return ReplicaController
-                .GetReplicaById(id)
-
-        end)
-
-
-    if success then
-        return replica
-    end
-
-
-    return nil
-
-end
-
-
-local function searchReplicaBatch()
-
-    if QuestReplica
-        and QuestReplica.Data then
-
-        if CachedQuestList
-            and looksLikeQuestList(
-                CachedQuestList
-            ) then
-
-            return QuestReplica
-
-        end
-
-
-        CachedQuestList =
-            findQuestList(
-                QuestReplica.Data
-            )
-
-
-        if CachedQuestList then
-            return QuestReplica
-        end
-
-    end
-
-
-    QuestReplica =
-        nil
-
-    CachedQuestList =
-        nil
-
-
-    for _ = 1, REPLICA_BATCH_SIZE do
-
-        local id =
-            ReplicaSearchCursor
-
-
-        ReplicaSearchCursor +=
-            1
-
-
-        if ReplicaSearchCursor >
-            REPLICA_SEARCH_MAX then
-
-            ReplicaSearchCursor =
-                1
-
-        end
-
-
-        local replica =
-            getReplica(id)
-
-
-        if replica
-            and replica.Data then
-
-            local questList =
-                findQuestList(
-                    replica.Data
-                )
-
-
-            if questList then
-
-                QuestReplica =
-                    replica
-
-
-                CachedQuestList =
-                    questList
-
-
-                print(
-                    "[Auto Farm] Profile/quest data cached"
-                )
-
-
-                return replica
-
-            end
-
-        end
-
-    end
-
-
-    return nil
-
-end
-
-
---// =========================================================
---// FIND REPLICA FOR STATS
---//
---// Full search only happens when Stats is manually opened.
---// It yields between batches to reduce freezing.
---// =========================================================
-
-local function ensureReplicaForStats(
-    fullSearch
-)
-
-    if QuestReplica
-        and QuestReplica.Data then
-
-        return QuestReplica
-    end
-
-
-    local maxBatches =
-        fullSearch and 50 or 2
-
-
-    for _ = 1, maxBatches do
-
-        if not alive then
-            return nil
-        end
-
-
-        local replica =
-            searchReplicaBatch()
-
-
-        if replica then
-            return replica
-        end
-
-
-        task.wait(0.03)
-
-    end
-
-
-    return nil
-
-end
-
-
---// =========================================================
---// GET CURRENT QUESTS
---// =========================================================
-
-local function getCurrentQuests()
-
-    if QuestReplica
-        and QuestReplica.Data then
-
-        if CachedQuestList
-            and looksLikeQuestList(
-                CachedQuestList
-            ) then
-
-            return CachedQuestList
-
-        end
-
-
-        CachedQuestList =
-            findQuestList(
-                QuestReplica.Data
-            )
-
-
-        if CachedQuestList then
-            return CachedQuestList
-        end
-
-    end
-
-
-    searchReplicaBatch()
-
-
-    return CachedQuestList
-
-end
-
-
---// =========================================================
---// GET CURRENT STAT
---// =========================================================
-
-local function getCurrentStat(
-    statName
-)
-
-    if not QuestReplica
-        or not QuestReplica.Data then
-
-        return 0
-
-    end
-
-
-    local result =
-        findStat(
-            QuestReplica.Data,
-            statName
-        )
-
-
-    return result or 0
-
-end
-
-
---// =========================================================
---// STATS READER
---// =========================================================
-
-local function getStatFromCandidates(
-    candidates
-)
-
-    if not QuestReplica
-        or not QuestReplica.Data then
-
-        return nil
-
-    end
-
-
-    for _, statName in ipairs(
-        candidates
-    ) do
-
-        local value =
-            findStat(
-                QuestReplica.Data,
-                statName
-            )
-
-
-        if value ~= nil then
-            return value
-        end
-
-    end
-
-
-    return nil
-
-end
-
-
-local function formatNumber(number)
-
-    if number == nil then
-        return "?"
-    end
-
-
-    number =
-        math.floor(number)
-
-
-    local formatted =
-        tostring(number)
-
-
-    while true do
-
-        local result, replacements =
-            string.gsub(
-                formatted,
-                "^(-?%d+)(%d%d%d)",
-                "%1,%2"
-            )
-
-
-        formatted =
-            result
-
-
-        if replacements == 0 then
-            break
-        end
-
-    end
-
-
-    return formatted
-
-end
-
-
---// =========================================================
---// UPDATE STATS
---// =========================================================
-
-local function updateStats(
-    fullSearch
-)
-
-    StatsUpdated.Text =
-        "Updating..."
-
-
-    local replica =
-        ensureReplicaForStats(
-            fullSearch
-        )
-
-
-    if not replica then
-
-        EggsStat.Text =
-            "Eggs: ?"
-
-        SecretStat.Text =
-            "Secrets: ?"
-
-        DivineStat.Text =
-            "Divines: ?"
-
-        StatsUpdated.Text =
-            "Player stats not found yet"
-
-        return
-
-    end
-
-
-    -- Eggs
-    local eggs =
-        getStatFromCandidates({
-            "Eggs",
-            "EggsHatched",
-            "EggsOpened",
-            "TotalEggsHatched",
-            "TotalEggsOpened",
-            "TotalEggs"
-        })
-
-
-    -- Secrets
-    local secrets =
-        getStatFromCandidates({
-            "SecretHatched",
-            "SecretsHatched",
-            "SecretPetsHatched",
-            "SecretHatches",
-            "Secrets"
-        })
-
-
-    -- Divines
-    local divines =
-        getStatFromCandidates({
-            "DivineHatched",
-            "DivinesHatched",
-            "DivinePetsHatched",
-            "DivineHatches",
-            "Divines",
-            "TotalDivinesHatched"
-        })
-
-
-    EggsStat.Text =
-        "Eggs: " ..
-        formatNumber(eggs)
-
-
-    SecretStat.Text =
-        "Secrets: " ..
-        formatNumber(secrets)
-
-
-    DivineStat.Text =
-        "Divines: " ..
-        formatNumber(divines)
-
-
-    StatsUpdated.Text =
-        "Updated just now • every 60s"
-
-end
-
-
---// =========================================================
---// STATS BUTTON
---// =========================================================
-
-StatsButton.MouseButton1Click:Connect(function()
-
-    StatsPopup.Visible =
-        not StatsPopup.Visible
-
-
-    -- Close egg menu if stats opens
-    if StatsPopup.Visible then
-
-        EggPopup.Visible =
-            false
-
-
-        task.spawn(function()
-
-            pcall(function()
-
-                updateStats(true)
-
-            end)
-
-        end)
-
-    end
-
-end)
-
-
---// =========================================================
---// STATS UPDATE LOOP
---// EVERY 60 SECONDS
---// =========================================================
-
-task.spawn(function()
-
-    while alive do
-
-        task.wait(
-            STATS_UPDATE_DELAY
-        )
-
-
-        if not alive then
-            break
-        end
-
-
-        pcall(function()
-
-            -- Small background search only.
-            -- Does not do the full 5000-ID scan.
-            updateStats(false)
-
-        end)
-
-    end
-
-end)
-
-
---// =========================================================
---// QUEST COMPLETE CHECK
+--// QUEST COMPLETE
 --// =========================================================
 
 local function questComplete(
@@ -2675,11 +1981,8 @@ local function questComplete(
     questInfo
 )
 
-    if quest.Collected ==
-        true then
-
+    if quest.Collected == true then
         return true
-
     end
 
 
@@ -2695,9 +1998,7 @@ local function questComplete(
         ) or 0
 
 
-    return current >=
-        target
-
+    return current >= target
 end
 
 
@@ -2727,13 +2028,8 @@ local QuestState = {
 
 local function clearQuestState()
 
-    for key in pairs(
-        QuestState
-    ) do
-
-        QuestState[key] =
-            false
-
+    for key in pairs(QuestState) do
+        QuestState[key] = false
     end
 
 end
@@ -2742,8 +2038,11 @@ end
 --// =========================================================
 --// QUEST SCANNER
 --//
---// AURAS ONLY FARMED IF THERE ARE 3+
---// UNFINISHED AURA QUESTS
+--// AURA RULE:
+--//
+--// 0 aura quests = OFF
+--// 1 aura quest  = OFF
+--// 2+ aura quests = ON
 --// =========================================================
 
 local function updateQuestState()
@@ -2760,17 +2059,13 @@ local function updateQuestState()
     end
 
 
-    local auraQuestCount =
-        0
+    local auraQuestCount = 0
 
 
     for _, quest in pairs(quests) do
 
-        if type(quest) ~=
-            "table" then
-
+        if type(quest) ~= "table" then
             continue
-
         end
 
 
@@ -2791,7 +2086,6 @@ local function updateQuestState()
         ) then
 
             continue
-
         end
 
 
@@ -2813,7 +2107,7 @@ local function updateQuestState()
             continue
 
 
-        -- Open eggs
+        -- Open X Eggs
         elseif dataType ==
             "Eggs" then
 
@@ -2821,7 +2115,7 @@ local function updateQuestState()
                 true
 
 
-        -- Eternal pets
+        -- Eternal Pets
         elseif dataType ==
             "EternalHatched" then
 
@@ -2829,7 +2123,7 @@ local function updateQuestState()
                 true
 
 
-        -- Secret pets
+        -- Secret Pets
         elseif dataType ==
             "SecretHatched" then
 
@@ -2857,8 +2151,7 @@ local function updateQuestState()
         elseif dataType ==
             "AuraChestsOpened" then
 
-            auraQuestCount +=
-                1
+            auraQuestCount += 1
 
 
         -- Gold pets
@@ -2897,19 +2190,17 @@ local function updateQuestState()
     end
 
 
-    -- 0 Aura quests = OFF
-    -- 1 Aura quest  = OFF
-    -- 2 Aura quests = OFF
-    -- 3+ Aura quests = ON
+    -- ONLY FARM AURAS WITH 2+
+    -- UNFINISHED AURA QUESTS
 
     QuestState.Auras =
-        auraQuestCount >= 3
+        auraQuestCount >= 2
 
 end
 
 
 --// =========================================================
---// QUEST SCANNER WORKER
+--// QUEST SCAN WORKER
 --// =========================================================
 
 task.spawn(function()
@@ -2920,10 +2211,7 @@ task.spawn(function()
 
             clearQuestState()
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -2944,11 +2232,11 @@ end)
 --// =========================================================
 --// AUTO QUEST HATCH
 --//
---// SECRET  -> BASIC
---// ETERNAL -> CITY
---// EGGS    -> MAGIC
+--// PRIORITY:
 --//
---// SECRET HAS HIGHEST PRIORITY
+--// Secret  -> Basic
+--// Eternal -> City
+--// Eggs    -> Magic
 --// =========================================================
 
 task.spawn(function()
@@ -2957,17 +2245,13 @@ task.spawn(function()
 
         if not Settings.AutoQuests then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
 
 
-        local egg =
-            nil
+        local egg = nil
 
 
         if QuestState.SecretHatch then
@@ -2993,7 +2277,6 @@ task.spawn(function()
         if not egg then
 
             task.wait(0.5)
-
             continue
 
         end
@@ -3031,10 +2314,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Boosts then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -3058,16 +2338,13 @@ task.spawn(function()
         end)
 
 
-        BoostIndex +=
-            1
+        BoostIndex += 1
 
 
         if BoostIndex >
             #BoostItems then
 
-            BoostIndex =
-                1
-
+            BoostIndex = 1
         end
 
 
@@ -3091,10 +2368,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Potions then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -3118,16 +2392,13 @@ task.spawn(function()
         end)
 
 
-        PotionIndex +=
-            1
+        PotionIndex += 1
 
 
         if PotionIndex >
             #PotionItems then
 
-            PotionIndex =
-                1
-
+            PotionIndex = 1
         end
 
 
@@ -3151,10 +2422,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Fruits then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -3178,16 +2446,13 @@ task.spawn(function()
         end)
 
 
-        FruitIndex +=
-            1
+        FruitIndex += 1
 
 
         if FruitIndex >
             #FruitItems then
 
-            FruitIndex =
-                1
-
+            FruitIndex = 1
         end
 
 
@@ -3203,7 +2468,7 @@ end)
 --// =========================================================
 --// QUEST AURAS
 --//
---// ONLY RUNS IF THERE ARE 3+
+--// ONLY RUNS IF 2+
 --// UNFINISHED AURA QUESTS
 --// =========================================================
 
@@ -3214,10 +2479,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Auras then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -3240,16 +2502,13 @@ task.spawn(function()
         end)
 
 
-        QuestAuraIndex +=
-            1
+        QuestAuraIndex += 1
 
 
         if QuestAuraIndex >
             #AuraPriority then
 
-            QuestAuraIndex =
-                1
-
+            QuestAuraIndex = 1
         end
 
 
@@ -3273,10 +2532,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Crates then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -3314,10 +2570,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Gold then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -3354,10 +2607,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Rainbow then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
