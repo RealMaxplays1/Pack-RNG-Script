@@ -85,13 +85,8 @@ local Eggs = {
 --// QUEST EGG SETTINGS
 --// =========================================================
 
--- Normal "Open X Eggs"
 local NORMAL_EGG = "Magic"
-
--- Eternal / Mythical quests
-local RARITY_EGG = "City"
-
--- Secret quests
+local ETERNAL_EGG = "City"
 local SECRET_EGG = "Basic"
 
 
@@ -161,7 +156,6 @@ local PotionIndex = 1
 --// =========================================================
 
 local QUEST_ACTION_DELAY = 0.15
-
 local CRAFT_DELAY = 1
 
 local LastGoldCraft = 0
@@ -205,7 +199,6 @@ Main.BorderSizePixel = 0
 Main.Active = true
 Main.Parent = ScreenGui
 
-
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = Main
@@ -223,7 +216,6 @@ TitleBar.BorderSizePixel = 0
 TitleBar.Active = true
 TitleBar.Parent = Main
 
-
 local TitleCorner = Instance.new("UICorner")
 TitleCorner.CornerRadius = UDim.new(0, 10)
 TitleCorner.Parent = TitleBar
@@ -234,13 +226,11 @@ local Title = Instance.new("TextLabel")
 Title.Size = UDim2.new(1, -50, 1, 0)
 Title.Position = UDim2.new(0, 10, 0, 0)
 Title.BackgroundTransparency = 1
-
 Title.Text = "Auto Farm"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextSize = 20
 Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
-
 Title.Parent = TitleBar
 
 
@@ -253,15 +243,12 @@ local Close = Instance.new("TextButton")
 Close.Size = UDim2.new(0, 30, 0, 30)
 Close.Position = UDim2.new(1, -35, 0, 5)
 Close.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
-
 Close.Text = "X"
 Close.TextColor3 = Color3.fromRGB(255, 255, 255)
 Close.Font = Enum.Font.GothamBold
 Close.TextSize = 16
 Close.BorderSizePixel = 0
-
 Close.Parent = TitleBar
-
 
 local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 6)
@@ -343,7 +330,6 @@ local function createToggle(name, yPosition, settingName)
 
     Button.Size = UDim2.new(1, -30, 0, 45)
     Button.Position = UDim2.new(0, 15, 0, yPosition)
-
     Button.BackgroundColor3 = Color3.fromRGB(150, 55, 55)
 
     Button.Text = name .. ": OFF"
@@ -351,9 +337,7 @@ local function createToggle(name, yPosition, settingName)
     Button.TextSize = 16
     Button.Font = Enum.Font.GothamBold
     Button.BorderSizePixel = 0
-
     Button.Parent = Main
-
 
     local Corner = Instance.new("UICorner")
     Corner.CornerRadius = UDim.new(0, 8)
@@ -362,24 +346,28 @@ local function createToggle(name, yPosition, settingName)
 
     Button.MouseButton1Click:Connect(function()
 
-        Settings[settingName] = not Settings[settingName]
+        Settings[settingName] =
+            not Settings[settingName]
 
         if Settings[settingName] then
 
-            Button.Text = name .. ": ON"
+            Button.Text =
+                name .. ": ON"
+
             Button.BackgroundColor3 =
                 Color3.fromRGB(55, 150, 75)
 
         else
 
-            Button.Text = name .. ": OFF"
+            Button.Text =
+                name .. ": OFF"
+
             Button.BackgroundColor3 =
                 Color3.fromRGB(150, 55, 55)
 
         end
 
     end)
-
 
     return Button
 
@@ -390,17 +378,8 @@ end
 --// MAIN BUTTONS
 --// =========================================================
 
-createToggle(
-    "Auras",
-    55,
-    "Auras"
-)
-
-createToggle(
-    "Merchant",
-    110,
-    "Merchant"
-)
+createToggle("Auras", 55, "Auras")
+createToggle("Merchant", 110, "Merchant")
 
 
 --// =========================================================
@@ -412,32 +391,20 @@ local HatchButton = Instance.new("TextButton")
 HatchButton.Size = UDim2.new(1, -30, 0, 45)
 HatchButton.Position = UDim2.new(0, 15, 0, 165)
 HatchButton.BackgroundColor3 = Color3.fromRGB(65, 90, 160)
-
 HatchButton.Text = "Hatch Eggs  ▼"
 HatchButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 HatchButton.TextSize = 16
 HatchButton.Font = Enum.Font.GothamBold
 HatchButton.BorderSizePixel = 0
-
 HatchButton.Parent = Main
-
 
 local HatchCorner = Instance.new("UICorner")
 HatchCorner.CornerRadius = UDim.new(0, 8)
 HatchCorner.Parent = HatchButton
 
 
-createToggle(
-    "AutoTap",
-    220,
-    "AutoTap"
-)
-
-createToggle(
-    "Auto Quests",
-    275,
-    "AutoQuests"
-)
+createToggle("AutoTap", 220, "AutoTap")
+createToggle("Auto Quests", 275, "AutoQuests")
 
 
 --// =========================================================
@@ -448,14 +415,10 @@ local EggPopup = Instance.new("Frame")
 
 EggPopup.Size = UDim2.new(0, 240, 0, 340)
 EggPopup.Position = UDim2.new(1, 10, 0, 40)
-
-EggPopup.BackgroundColor3 =
-    Color3.fromRGB(25, 25, 25)
-
+EggPopup.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 EggPopup.BorderSizePixel = 0
 EggPopup.Visible = false
 EggPopup.Parent = Main
-
 
 local PopupCorner = Instance.new("UICorner")
 PopupCorner.CornerRadius = UDim.new(0, 10)
@@ -467,13 +430,11 @@ local PopupTitle = Instance.new("TextLabel")
 PopupTitle.Size = UDim2.new(1, -40, 0, 35)
 PopupTitle.Position = UDim2.new(0, 10, 0, 5)
 PopupTitle.BackgroundTransparency = 1
-
 PopupTitle.Text = "Select Egg"
 PopupTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 PopupTitle.TextSize = 18
 PopupTitle.Font = Enum.Font.GothamBold
 PopupTitle.TextXAlignment = Enum.TextXAlignment.Left
-
 PopupTitle.Parent = EggPopup
 
 
@@ -481,18 +442,13 @@ local PopupClose = Instance.new("TextButton")
 
 PopupClose.Size = UDim2.new(0, 30, 0, 30)
 PopupClose.Position = UDim2.new(1, -35, 0, 5)
-
-PopupClose.BackgroundColor3 =
-    Color3.fromRGB(150, 55, 55)
-
+PopupClose.BackgroundColor3 = Color3.fromRGB(150, 55, 55)
 PopupClose.Text = "X"
 PopupClose.TextColor3 = Color3.fromRGB(255, 255, 255)
 PopupClose.Font = Enum.Font.GothamBold
 PopupClose.TextSize = 14
 PopupClose.BorderSizePixel = 0
-
 PopupClose.Parent = EggPopup
-
 
 local PopupCloseCorner = Instance.new("UICorner")
 PopupCloseCorner.CornerRadius = UDim.new(0, 6)
@@ -505,29 +461,20 @@ end)
 
 
 --// =========================================================
---// SELECTED EGG LABEL
+--// SELECTED EGG
 --// =========================================================
 
 local SelectedLabel = Instance.new("TextLabel")
 
 SelectedLabel.Size = UDim2.new(1, -20, 0, 30)
 SelectedLabel.Position = UDim2.new(0, 10, 0, 40)
-
-SelectedLabel.BackgroundColor3 =
-    Color3.fromRGB(40, 40, 40)
-
-SelectedLabel.Text =
-    "Selected: " .. SelectedEgg
-
-SelectedLabel.TextColor3 =
-    Color3.fromRGB(255, 255, 255)
-
+SelectedLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+SelectedLabel.Text = "Selected: " .. SelectedEgg
+SelectedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 SelectedLabel.TextSize = 14
 SelectedLabel.Font = Enum.Font.GothamBold
 SelectedLabel.BorderSizePixel = 0
-
 SelectedLabel.Parent = EggPopup
-
 
 local SelectedCorner = Instance.new("UICorner")
 SelectedCorner.CornerRadius = UDim.new(0, 6)
@@ -542,19 +489,11 @@ local EggScroll = Instance.new("ScrollingFrame")
 
 EggScroll.Size = UDim2.new(1, -20, 0, 205)
 EggScroll.Position = UDim2.new(0, 10, 0, 80)
-
-EggScroll.BackgroundColor3 =
-    Color3.fromRGB(35, 35, 35)
-
+EggScroll.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 EggScroll.BorderSizePixel = 0
 EggScroll.ScrollBarThickness = 6
-
-EggScroll.CanvasSize =
-    UDim2.new(0, 0, 0, 0)
-
-EggScroll.AutomaticCanvasSize =
-    Enum.AutomaticSize.Y
-
+EggScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+EggScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 EggScroll.Parent = EggPopup
 
 
@@ -571,7 +510,6 @@ EggPadding.PaddingTop = UDim.new(0, 5)
 EggPadding.PaddingBottom = UDim.new(0, 5)
 EggPadding.PaddingLeft = UDim.new(0, 5)
 EggPadding.PaddingRight = UDim.new(0, 5)
-
 EggPadding.Parent = EggScroll
 
 
@@ -587,23 +525,17 @@ for _, eggName in ipairs(Eggs) do
     local EggButton = Instance.new("TextButton")
 
     EggButton.Size = UDim2.new(1, -10, 0, 38)
-
-    EggButton.BackgroundColor3 =
-        Color3.fromRGB(60, 60, 60)
-
+    EggButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     EggButton.Text = eggName
     EggButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     EggButton.TextSize = 15
     EggButton.Font = Enum.Font.GothamBold
     EggButton.BorderSizePixel = 0
-
     EggButton.Parent = EggScroll
-
 
     local EggCorner = Instance.new("UICorner")
     EggCorner.CornerRadius = UDim.new(0, 6)
     EggCorner.Parent = EggButton
-
 
     EggButtons[eggName] = EggButton
 
@@ -615,14 +547,10 @@ for _, eggName in ipairs(Eggs) do
         SelectedLabel.Text =
             "Selected: " .. eggName
 
-
         for _, button in pairs(EggButtons) do
-
             button.BackgroundColor3 =
                 Color3.fromRGB(60, 60, 60)
-
         end
-
 
         EggButton.BackgroundColor3 =
             Color3.fromRGB(55, 150, 75)
@@ -637,25 +565,20 @@ EggButtons["Basic"].BackgroundColor3 =
 
 
 --// =========================================================
---// AUTO HATCH BUTTON
+--// AUTO HATCH TOGGLE
 --// =========================================================
 
 local AutoHatchButton = Instance.new("TextButton")
 
 AutoHatchButton.Size = UDim2.new(1, -20, 0, 40)
 AutoHatchButton.Position = UDim2.new(0, 10, 1, -50)
-
-AutoHatchButton.BackgroundColor3 =
-    Color3.fromRGB(150, 55, 55)
-
+AutoHatchButton.BackgroundColor3 = Color3.fromRGB(150, 55, 55)
 AutoHatchButton.Text = "Auto Hatch: OFF"
 AutoHatchButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 AutoHatchButton.TextSize = 15
 AutoHatchButton.Font = Enum.Font.GothamBold
 AutoHatchButton.BorderSizePixel = 0
-
 AutoHatchButton.Parent = EggPopup
-
 
 local AutoHatchCorner = Instance.new("UICorner")
 AutoHatchCorner.CornerRadius = UDim.new(0, 7)
@@ -666,7 +589,6 @@ AutoHatchButton.MouseButton1Click:Connect(function()
 
     Settings.Hatch =
         not Settings.Hatch
-
 
     if Settings.Hatch then
 
@@ -728,7 +650,6 @@ task.spawn(function()
 
                 end
 
-
                 pcall(function()
 
                     Functions
@@ -736,7 +657,6 @@ task.spawn(function()
                         :InvokeServer(aura)
 
                 end)
-
 
                 task.wait(1)
 
@@ -762,7 +682,6 @@ task.spawn(function()
     while ScreenGui.Parent do
 
         if Settings.Merchant then
-
 
             pcall(function()
 
@@ -836,13 +755,15 @@ end)
 
 --// =========================================================
 --// NORMAL AUTO HATCH
+--// PAUSED WHILE AUTO QUESTS IS ON
 --// =========================================================
 
 task.spawn(function()
 
     while ScreenGui.Parent do
 
-        if Settings.Hatch then
+        if Settings.Hatch
+            and not Settings.AutoQuests then
 
             pcall(function()
 
@@ -854,7 +775,6 @@ task.spawn(function()
                     )
 
             end)
-
 
             task.wait(0.1)
 
@@ -887,7 +807,6 @@ task.spawn(function()
 
             end)
 
-
             task.wait(0.05)
 
         else
@@ -911,9 +830,7 @@ local function looksLikeQuestList(tbl)
         return false
     end
 
-
     local found = 0
-
 
     for _, value in pairs(tbl) do
 
@@ -927,36 +844,27 @@ local function looksLikeQuestList(tbl)
 
     end
 
-
     return found > 0
 
 end
 
 
-local function findQuestList(
-    tbl,
-    depth,
-    visited
-)
+local function findQuestList(tbl, depth, visited)
 
     if type(tbl) ~= "table" then
         return nil
     end
 
-
     depth = depth or 0
     visited = visited or {}
-
 
     if depth > 6 then
         return nil
     end
 
-
     if visited[tbl] then
         return nil
     end
-
 
     visited[tbl] = true
 
@@ -977,7 +885,6 @@ local function findQuestList(
                     visited
                 )
 
-
             if result then
                 return result
             end
@@ -985,7 +892,6 @@ local function findQuestList(
         end
 
     end
-
 
     return nil
 
@@ -1007,20 +913,16 @@ local function findStat(
         return nil
     end
 
-
     depth = depth or 0
     visited = visited or {}
-
 
     if depth > 6 then
         return nil
     end
 
-
     if visited[tbl] then
         return nil
     end
-
 
     visited[tbl] = true
 
@@ -1029,7 +931,6 @@ local function findStat(
 
         local value =
             tonumber(tbl[statName])
-
 
         if value then
             return value
@@ -1050,7 +951,6 @@ local function findStat(
                     visited
                 )
 
-
             if result ~= nil then
                 return result
             end
@@ -1058,7 +958,6 @@ local function findStat(
         end
 
     end
-
 
     return nil
 
@@ -1082,11 +981,9 @@ local function getReplica(id)
 
         end)
 
-
     if success then
         return replica
     end
-
 
     return nil
 
@@ -1109,14 +1006,12 @@ local function discoverQuestReplica()
         local replica =
             getReplica(id)
 
-
         if replica and replica.Data then
 
             local quests =
                 findQuestList(
                     replica.Data
                 )
-
 
             if quests then
 
@@ -1133,13 +1028,11 @@ local function discoverQuestReplica()
 
         end
 
-
         if id % 250 == 0 then
             task.wait()
         end
 
     end
-
 
     return nil
 
@@ -1151,11 +1044,9 @@ local function getCurrentQuests()
     local replica =
         discoverQuestReplica()
 
-
     if not replica then
         return nil
     end
-
 
     return findQuestList(
         replica.Data
@@ -1179,7 +1070,6 @@ local function getCurrentStat(statName)
                 statName
             )
 
-
         if result ~= nil then
             return result
         end
@@ -1195,7 +1085,6 @@ local function getCurrentStat(statName)
                 QuestReplica.Data,
                 statName
             )
-
 
         if result ~= nil then
 
@@ -1214,7 +1103,6 @@ local function getCurrentStat(statName)
         local replica =
             getReplica(id)
 
-
         if replica
             and replica.Data then
 
@@ -1223,7 +1111,6 @@ local function getCurrentStat(statName)
                     replica.Data,
                     statName
                 )
-
 
             if result ~= nil then
 
@@ -1236,13 +1123,11 @@ local function getCurrentStat(statName)
 
         end
 
-
         if id % 250 == 0 then
             task.wait()
         end
 
     end
-
 
     return 0
 
@@ -1293,15 +1178,12 @@ local function runAction(
         return
     end
 
-
     ActionBusy[actionName] = true
-
 
     task.spawn(function()
 
         local success, err =
             pcall(callback)
-
 
         if not success then
 
@@ -1313,9 +1195,7 @@ local function runAction(
 
         end
 
-
-        ActionBusy[actionName] =
-            false
+        ActionBusy[actionName] = false
 
     end)
 
@@ -1345,14 +1225,11 @@ local function QuestRollAura()
             QuestAuraIndex
         ]
 
-
     Functions
         :WaitForChild("AurasFunction")
         :InvokeServer(aura)
 
-
     QuestAuraIndex += 1
-
 
     if QuestAuraIndex >
         #AuraPriority then
@@ -1371,7 +1248,6 @@ local function QuestUseBoost()
             BoostIndex
         ]
 
-
     Events
         :WaitForChild("UsePotion")
         :FireServer(
@@ -1379,9 +1255,7 @@ local function QuestUseBoost()
             1
         )
 
-
     BoostIndex += 1
-
 
     if BoostIndex >
         #BoostItems then
@@ -1400,7 +1274,6 @@ local function QuestUseFruit()
             FruitIndex
         ]
 
-
     Events
         :WaitForChild("UsePotion")
         :FireServer(
@@ -1408,9 +1281,7 @@ local function QuestUseFruit()
             1
         )
 
-
     FruitIndex += 1
-
 
     if FruitIndex >
         #FruitItems then
@@ -1429,7 +1300,6 @@ local function QuestUsePotion()
             PotionIndex
         ]
 
-
     Events
         :WaitForChild("UsePotion")
         :FireServer(
@@ -1437,9 +1307,7 @@ local function QuestUsePotion()
             1
         )
 
-
     PotionIndex += 1
-
 
     if PotionIndex >
         #PotionItems then
@@ -1483,7 +1351,6 @@ local function getRequiredQuestActions()
     local quests =
         getCurrentQuests()
 
-
     if not quests then
         return nil
     end
@@ -1493,7 +1360,7 @@ local function getRequiredQuestActions()
 
         Eggs = false,
 
-        RarityHatch = false,
+        EternalHatch = false,
         SecretHatch = false,
 
         Boosts = false,
@@ -1518,7 +1385,6 @@ local function getRequiredQuestActions()
                     quest.Id
                 )
 
-
             if questInfo then
 
                 local dataType =
@@ -1531,26 +1397,17 @@ local function getRequiredQuestActions()
                 ) then
 
 
-                    -- =========================================
-                    -- IGNORE TIME
-                    -- =========================================
-
+                    -- Ignore TimePlayed
                     if dataType ==
                         "TimePlayed" then
 
 
-                    -- =========================================
-                    -- IGNORE CLICKS
-                    -- =========================================
-
+                    -- Ignore UniqueClicks
                     elseif dataType ==
                         "UniqueClicks" then
 
 
-                    -- =========================================
-                    -- OPEN EGGS
-                    -- =========================================
-
+                    -- Open X Eggs
                     elseif dataType ==
                         "Eggs" then
 
@@ -1558,112 +1415,73 @@ local function getRequiredQuestActions()
                             true
 
 
-                    -- =========================================
-                    -- ETERNAL / MYTHICAL
-                    -- =========================================
-
+                    -- Eternal pets
                     elseif dataType ==
-                        "EternalHatched"
+                        "EternalHatched" then
 
-                        or dataType ==
-                        "MythicalHatched"
-                    then
-
-                        actions.RarityHatch =
+                        actions.EternalHatch =
                             true
 
 
-                    -- =========================================
-                    -- SECRET
-                    -- =========================================
-
+                    -- Secret pets
                     elseif dataType ==
-                        "SecretHatched"
-                    then
+                        "SecretHatched" then
 
                         actions.SecretHatch =
                             true
 
 
-                    -- =========================================
-                    -- BOOSTS
-                    -- =========================================
-
+                    -- Boosts
                     elseif dataType ==
-                        "BoostsUsed"
-                    then
+                        "BoostsUsed" then
 
                         actions.Boosts =
                             true
 
 
-                    -- =========================================
-                    -- POTIONS
-                    -- =========================================
-
+                    -- Potions
                     elseif dataType ==
-                        "PotionsUsed"
-                    then
+                        "PotionsUsed" then
 
                         actions.Potions =
                             true
 
 
-                    -- =========================================
-                    -- AURAS
-                    -- =========================================
-
+                    -- Auras
                     elseif dataType ==
-                        "AuraChestsOpened"
-                    then
+                        "AuraChestsOpened" then
 
                         actions.Auras =
                             true
 
 
-                    -- =========================================
-                    -- GOLD
-                    -- =========================================
-
+                    -- Gold
                     elseif dataType ==
-                        "ShinyCrafted"
-                    then
+                        "ShinyCrafted" then
 
                         actions.Gold =
                             true
 
 
-                    -- =========================================
-                    -- RAINBOW
-                    -- =========================================
-
+                    -- Rainbow
                     elseif dataType ==
-                        "RainbowCrafted"
-                    then
+                        "RainbowCrafted" then
 
                         actions.Rainbow =
                             true
 
 
-                    -- =========================================
-                    -- CRATES
-                    -- =========================================
-
+                    -- Crates
                     elseif dataType ==
-                        "TotalCratesOpened"
-                    then
+                        "TotalCratesOpened" then
 
                         actions.Crates =
                             true
 
 
-                    -- =========================================
-                    -- FRUITS
-                    -- =========================================
-
+                    -- Fruits
                     elseif dataType ==
-                        "TotalFruitsUsed"
-                    then
+                        "TotalFruitsUsed" then
 
                         actions.Fruits =
                             true
@@ -1677,7 +1495,6 @@ local function getRequiredQuestActions()
         end
 
     end
-
 
     return actions
 
@@ -1705,14 +1522,19 @@ task.spawn(function()
 
 
                 --// ==========================================
-                --// SECRET HATCH
-                --// BASIC TRIPLE
+                --// HATCH PRIORITY
+                --//
+                --// Secret > Eternal > Eggs
+                --//
+                --// Secret = Basic
+                --// Eternal = City
+                --// Eggs = Magic
                 --// ==========================================
 
                 if actions.SecretHatch then
 
                     runAction(
-                        "QuestSecretHatch",
+                        "QuestHatch",
 
                         function()
 
@@ -1723,54 +1545,30 @@ task.spawn(function()
                         end
                     )
 
-
-                    didSomething =
-                        true
-
-                end
+                    didSomething = true
 
 
-                --// ==========================================
-                --// ETERNAL / MYTHICAL
-                --// CITY TRIPLE
-                --// ==========================================
-
-                if actions.RarityHatch then
+                elseif actions.EternalHatch then
 
                     runAction(
-                        "QuestRarityHatch",
+                        "QuestHatch",
 
                         function()
 
                             QuestHatch(
-                                RARITY_EGG
+                                ETERNAL_EGG
                             )
 
                         end
                     )
 
-
-                    didSomething =
-                        true
-
-                end
+                    didSomething = true
 
 
-                --// ==========================================
-                --// NORMAL OPEN EGGS
-                --// MAGIC TRIPLE
-                --//
-                --// Only needs its own hatch if there isn't
-                --// already a secret/rarity hatch running.
-                --// Those hatches should also count as eggs.
-                --// ==========================================
-
-                if actions.Eggs
-                    and not actions.SecretHatch
-                    and not actions.RarityHatch then
+                elseif actions.Eggs then
 
                     runAction(
-                        "QuestNormalHatch",
+                        "QuestHatch",
 
                         function()
 
@@ -1781,9 +1579,7 @@ task.spawn(function()
                         end
                     )
 
-
-                    didSomething =
-                        true
+                    didSomething = true
 
                 end
 
@@ -1804,9 +1600,7 @@ task.spawn(function()
                         end
                     )
 
-
-                    didSomething =
-                        true
+                    didSomething = true
 
                 end
 
@@ -1827,9 +1621,7 @@ task.spawn(function()
                         end
                     )
 
-
-                    didSomething =
-                        true
+                    didSomething = true
 
                 end
 
@@ -1850,9 +1642,7 @@ task.spawn(function()
                         end
                     )
 
-
-                    didSomething =
-                        true
+                    didSomething = true
 
                 end
 
@@ -1873,9 +1663,7 @@ task.spawn(function()
                         end
                     )
 
-
-                    didSomething =
-                        true
+                    didSomething = true
 
                 end
 
@@ -1896,9 +1684,7 @@ task.spawn(function()
                         end
                     )
 
-
-                    didSomething =
-                        true
+                    didSomething = true
 
                 end
 
@@ -1934,9 +1720,7 @@ task.spawn(function()
 
                     end
 
-
-                    didSomething =
-                        true
+                    didSomething = true
 
                 end
 
@@ -1972,16 +1756,10 @@ task.spawn(function()
 
                     end
 
-
-                    didSomething =
-                        true
+                    didSomething = true
 
                 end
 
-
-                --// ==========================================
-                --// WAIT
-                --// ==========================================
 
                 if didSomething then
 
