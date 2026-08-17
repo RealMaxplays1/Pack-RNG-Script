@@ -117,9 +117,7 @@ trackConnection(
 
         pcall(function()
             VirtualUser:CaptureController()
-            VirtualUser:ClickButton2(
-                Vector2.new(0, 0)
-            )
+            VirtualUser:ClickButton2(Vector2.new(0, 0))
         end)
 
     end)
@@ -154,13 +152,8 @@ local Eggs = {
 --// AUTO QUEST EGGS
 --// =========================================================
 
--- Hatch X Secret Pets
 local SECRET_EGG = "Basic"
-
--- Hatch X Eternal Pets
 local ETERNAL_EGG = "City"
-
--- Open X Eggs
 local NORMAL_EGG = "Magic"
 
 
@@ -232,6 +225,7 @@ local PotionIndex = 1
 local MerchantItems = {}
 
 do
+
     local allSpawnItems =
         MerchantModule.getAll("Spawn")
 
@@ -253,6 +247,7 @@ do
             return a.Lay < b.Lay
         end
     )
+
 end
 
 
@@ -272,7 +267,6 @@ local QUEST_SCAN_DELAY = 0.25
 local MERCHANT_ITEM_DELAY = 0.05
 local MERCHANT_CYCLE_DELAY = 0.25
 
--- When features are OFF
 local IDLE_DELAY = 1
 
 
@@ -305,28 +299,11 @@ ScreenGui.Parent = PlayerGui
 
 local Main = Instance.new("Frame")
 
-Main.Size =
-    UDim2.new(
-        0,
-        260,
-        0,
-        340
-    )
-
-Main.Position =
-    UDim2.new(
-        0.5,
-        -130,
-        0.5,
-        -170
-    )
+Main.Size = UDim2.new(0, 260, 0, 340)
+Main.Position = UDim2.new(0.5, -130, 0.5, -170)
 
 Main.BackgroundColor3 =
-    Color3.fromRGB(
-        30,
-        30,
-        30
-    )
+    Color3.fromRGB(30, 30, 30)
 
 Main.BorderSizePixel = 0
 Main.Active = true
@@ -350,19 +327,10 @@ local TitleBar =
     Instance.new("Frame")
 
 TitleBar.Size =
-    UDim2.new(
-        1,
-        0,
-        0,
-        40
-    )
+    UDim2.new(1, 0, 0, 40)
 
 TitleBar.BackgroundColor3 =
-    Color3.fromRGB(
-        45,
-        45,
-        45
-    )
+    Color3.fromRGB(45, 45, 45)
 
 TitleBar.BorderSizePixel = 0
 TitleBar.Active = true
@@ -382,31 +350,17 @@ local Title =
     Instance.new("TextLabel")
 
 Title.Size =
-    UDim2.new(
-        1,
-        -50,
-        1,
-        0
-    )
+    UDim2.new(1, -50, 1, 0)
 
 Title.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        0
-    )
+    UDim2.new(0, 10, 0, 0)
 
 Title.BackgroundTransparency = 1
 
 Title.Text = "Auto Farm"
 
 Title.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
 Title.TextSize = 20
 Title.Font = Enum.Font.GothamBold
@@ -418,43 +372,25 @@ Title.Parent = TitleBar
 
 
 --// =========================================================
---// CLOSE BUTTON
+--// CLOSE
 --// =========================================================
 
 local Close =
     Instance.new("TextButton")
 
 Close.Size =
-    UDim2.new(
-        0,
-        30,
-        0,
-        30
-    )
+    UDim2.new(0, 30, 0, 30)
 
 Close.Position =
-    UDim2.new(
-        1,
-        -35,
-        0,
-        5
-    )
+    UDim2.new(1, -35, 0, 5)
 
 Close.BackgroundColor3 =
-    Color3.fromRGB(
-        180,
-        60,
-        60
-    )
+    Color3.fromRGB(180, 60, 60)
 
 Close.Text = "X"
 
 Close.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
 Close.Font = Enum.Font.GothamBold
 Close.TextSize = 16
@@ -494,12 +430,9 @@ TitleBar.InputBegan:Connect(function(input)
         Enum.UserInputType.Touch then
 
         dragging = true
+        dragStart = input.Position
+        startPosition = Main.Position
 
-        dragStart =
-            input.Position
-
-        startPosition =
-            Main.Position
 
         input.Changed:Connect(function()
 
@@ -535,6 +468,7 @@ trackConnection(
         local delta =
             input.Position - dragStart
 
+
         Main.Position =
             UDim2.new(
                 startPosition.X.Scale,
@@ -562,37 +496,19 @@ local function createToggle(
         Instance.new("TextButton")
 
     Button.Size =
-        UDim2.new(
-            1,
-            -30,
-            0,
-            45
-        )
+        UDim2.new(1, -30, 0, 45)
 
     Button.Position =
-        UDim2.new(
-            0,
-            15,
-            0,
-            yPosition
-        )
+        UDim2.new(0, 15, 0, yPosition)
 
     Button.BackgroundColor3 =
-        Color3.fromRGB(
-            150,
-            55,
-            55
-        )
+        Color3.fromRGB(150, 55, 55)
 
     Button.Text =
         name .. ": OFF"
 
     Button.TextColor3 =
-        Color3.fromRGB(
-            255,
-            255,
-            255
-        )
+        Color3.fromRGB(255, 255, 255)
 
     Button.TextSize = 16
     Button.Font = Enum.Font.GothamBold
@@ -614,6 +530,7 @@ local function createToggle(
 
         Settings[settingName] =
             not Settings[settingName]
+
 
         if Settings[settingName] then
 
@@ -673,37 +590,19 @@ local HatchButton =
     Instance.new("TextButton")
 
 HatchButton.Size =
-    UDim2.new(
-        1,
-        -30,
-        0,
-        45
-    )
+    UDim2.new(1, -30, 0, 45)
 
 HatchButton.Position =
-    UDim2.new(
-        0,
-        15,
-        0,
-        165
-    )
+    UDim2.new(0, 15, 0, 165)
 
 HatchButton.BackgroundColor3 =
-    Color3.fromRGB(
-        65,
-        90,
-        160
-    )
+    Color3.fromRGB(65, 90, 160)
 
 HatchButton.Text =
     "Hatch Eggs  ▼"
 
 HatchButton.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
 HatchButton.TextSize = 16
 HatchButton.Font = Enum.Font.GothamBold
@@ -718,8 +617,7 @@ local HatchCorner =
 HatchCorner.CornerRadius =
     UDim.new(0, 8)
 
-HatchCorner.Parent =
-    HatchButton
+HatchCorner.Parent = HatchButton
 
 
 createToggle(
@@ -743,27 +641,13 @@ local EggPopup =
     Instance.new("Frame")
 
 EggPopup.Size =
-    UDim2.new(
-        0,
-        240,
-        0,
-        340
-    )
+    UDim2.new(0, 240, 0, 340)
 
 EggPopup.Position =
-    UDim2.new(
-        1,
-        10,
-        0,
-        40
-    )
+    UDim2.new(1, 10, 0, 40)
 
 EggPopup.BackgroundColor3 =
-    Color3.fromRGB(
-        25,
-        25,
-        25
-    )
+    Color3.fromRGB(25, 25, 25)
 
 EggPopup.BorderSizePixel = 0
 EggPopup.Visible = false
@@ -783,30 +667,16 @@ local PopupTitle =
     Instance.new("TextLabel")
 
 PopupTitle.Size =
-    UDim2.new(
-        1,
-        -40,
-        0,
-        35
-    )
+    UDim2.new(1, -40, 0, 35)
 
 PopupTitle.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        5
-    )
+    UDim2.new(0, 10, 0, 5)
 
 PopupTitle.BackgroundTransparency = 1
 PopupTitle.Text = "Select Egg"
 
 PopupTitle.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
 PopupTitle.TextSize = 18
 PopupTitle.Font = Enum.Font.GothamBold
@@ -821,42 +691,23 @@ local PopupClose =
     Instance.new("TextButton")
 
 PopupClose.Size =
-    UDim2.new(
-        0,
-        30,
-        0,
-        30
-    )
+    UDim2.new(0, 30, 0, 30)
 
 PopupClose.Position =
-    UDim2.new(
-        1,
-        -35,
-        0,
-        5
-    )
+    UDim2.new(1, -35, 0, 5)
 
 PopupClose.BackgroundColor3 =
-    Color3.fromRGB(
-        150,
-        55,
-        55
-    )
+    Color3.fromRGB(150, 55, 55)
 
 PopupClose.Text = "X"
 
 PopupClose.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
-PopupClose.Font =
-    Enum.Font.GothamBold
-
+PopupClose.Font = Enum.Font.GothamBold
 PopupClose.TextSize = 14
 PopupClose.BorderSizePixel = 0
+
 PopupClose.Parent = EggPopup
 
 
@@ -876,44 +727,26 @@ end)
 
 
 --// =========================================================
---// SELECTED EGG LABEL
+--// SELECTED EGG
 --// =========================================================
 
 local SelectedLabel =
     Instance.new("TextLabel")
 
 SelectedLabel.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        30
-    )
+    UDim2.new(1, -20, 0, 30)
 
 SelectedLabel.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        40
-    )
+    UDim2.new(0, 10, 0, 40)
 
 SelectedLabel.BackgroundColor3 =
-    Color3.fromRGB(
-        40,
-        40,
-        40
-    )
+    Color3.fromRGB(40, 40, 40)
 
 SelectedLabel.Text =
     "Selected: " .. SelectedEgg
 
 SelectedLabel.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
 SelectedLabel.TextSize = 14
 SelectedLabel.Font = Enum.Font.GothamBold
@@ -930,38 +763,19 @@ local EggScroll =
     Instance.new("ScrollingFrame")
 
 EggScroll.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        205
-    )
+    UDim2.new(1, -20, 0, 205)
 
 EggScroll.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        80
-    )
+    UDim2.new(0, 10, 0, 80)
 
 EggScroll.BackgroundColor3 =
-    Color3.fromRGB(
-        35,
-        35,
-        35
-    )
+    Color3.fromRGB(35, 35, 35)
 
 EggScroll.BorderSizePixel = 0
 EggScroll.ScrollBarThickness = 6
 
 EggScroll.CanvasSize =
-    UDim2.new(
-        0,
-        0,
-        0,
-        0
-    )
+    UDim2.new(0, 0, 0, 0)
 
 EggScroll.AutomaticCanvasSize =
     Enum.AutomaticSize.Y
@@ -1012,33 +826,20 @@ for _, eggName in ipairs(Eggs) do
         Instance.new("TextButton")
 
     EggButton.Size =
-        UDim2.new(
-            1,
-            -10,
-            0,
-            38
-        )
+        UDim2.new(1, -10, 0, 38)
 
     EggButton.BackgroundColor3 =
-        Color3.fromRGB(
-            60,
-            60,
-            60
-        )
+        Color3.fromRGB(60, 60, 60)
 
-    EggButton.Text =
-        eggName
+    EggButton.Text = eggName
 
     EggButton.TextColor3 =
-        Color3.fromRGB(
-            255,
-            255,
-            255
-        )
+        Color3.fromRGB(255, 255, 255)
 
     EggButton.TextSize = 15
     EggButton.Font = Enum.Font.GothamBold
     EggButton.BorderSizePixel = 0
+
     EggButton.Parent = EggScroll
 
 
@@ -1048,8 +849,7 @@ for _, eggName in ipairs(Eggs) do
     EggCorner.CornerRadius =
         UDim.new(0, 6)
 
-    EggCorner.Parent =
-        EggButton
+    EggCorner.Parent = EggButton
 
 
     EggButtons[eggName] =
@@ -1090,56 +890,35 @@ end
 
 
 EggButtons["Basic"].BackgroundColor3 =
-    Color3.fromRGB(
-        55,
-        150,
-        75
-    )
+    Color3.fromRGB(55, 150, 75)
 
 
 --// =========================================================
---// AUTO HATCH TOGGLE
+--// AUTO HATCH BUTTON
 --// =========================================================
 
 local AutoHatchButton =
     Instance.new("TextButton")
 
 AutoHatchButton.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        40
-    )
+    UDim2.new(1, -20, 0, 40)
 
 AutoHatchButton.Position =
-    UDim2.new(
-        0,
-        10,
-        1,
-        -50
-    )
+    UDim2.new(0, 10, 1, -50)
 
 AutoHatchButton.BackgroundColor3 =
-    Color3.fromRGB(
-        150,
-        55,
-        55
-    )
+    Color3.fromRGB(150, 55, 55)
 
 AutoHatchButton.Text =
     "Auto Hatch: OFF"
 
 AutoHatchButton.TextColor3 =
-    Color3.fromRGB(
-        255,
-        255,
-        255
-    )
+    Color3.fromRGB(255, 255, 255)
 
 AutoHatchButton.TextSize = 15
 AutoHatchButton.Font = Enum.Font.GothamBold
 AutoHatchButton.BorderSizePixel = 0
+
 AutoHatchButton.Parent = EggPopup
 
 
@@ -1207,7 +986,7 @@ end)
 
 
 --// =========================================================
---// NORMAL AURA WORKER
+--// NORMAL AURAS
 --// =========================================================
 
 task.spawn(function()
@@ -1215,8 +994,10 @@ task.spawn(function()
     while alive do
 
         if not Settings.Auras then
+
             task.wait(IDLE_DELAY)
             continue
+
         end
 
 
@@ -1495,6 +1276,7 @@ local function findStat(
                 tbl[statName]
             )
 
+
         if value ~= nil then
             return value
         end
@@ -1530,14 +1312,13 @@ end
 
 
 --// =========================================================
---// REPLICA DISCOVERY
+--// REPLICA
 --// =========================================================
 
 local QuestReplica = nil
 
 local REPLICA_SEARCH_MAX = 5000
 local REPLICA_BATCH_SIZE = 100
-
 local ReplicaSearchCursor = 1
 
 
@@ -1620,9 +1401,11 @@ local function searchReplicaBatch()
                 QuestReplica =
                     replica
 
+
                 print(
                     "[AutoQuest] Quest replica cached"
                 )
+
 
                 return replica
 
@@ -1745,6 +1528,12 @@ end
 
 --// =========================================================
 --// QUEST SCANNER
+--//
+--// AURAS:
+--// 0 = don't farm
+--// 1 = don't farm
+--// 2 = don't farm
+--// 3+ = farm
 --// =========================================================
 
 local function updateQuestState()
@@ -1759,6 +1548,9 @@ local function updateQuestState()
     if not quests then
         return
     end
+
+
+    local auraQuestCount = 0
 
 
     for _, quest in pairs(quests) do
@@ -1793,24 +1585,29 @@ local function updateQuestState()
             questInfo.dataType
 
 
-        -- Ignore TimePlayed
-        if dataType == "TimePlayed" then
+        -- Ignore Time Played
+        if dataType ==
+            "TimePlayed" then
+
             continue
-        end
 
 
         -- Ignore click quests
-        if dataType == "UniqueClicks" then
+        elseif dataType ==
+            "UniqueClicks" then
+
             continue
-        end
 
 
-        if dataType == "Eggs" then
+        -- Open Eggs
+        elseif dataType ==
+            "Eggs" then
 
             QuestState.Eggs =
                 true
 
 
+        -- Eternal Pets
         elseif dataType ==
             "EternalHatched" then
 
@@ -1818,6 +1615,7 @@ local function updateQuestState()
                 true
 
 
+        -- Secret Pets
         elseif dataType ==
             "SecretHatched" then
 
@@ -1825,6 +1623,7 @@ local function updateQuestState()
                 true
 
 
+        -- Boosts
         elseif dataType ==
             "BoostsUsed" then
 
@@ -1832,6 +1631,7 @@ local function updateQuestState()
                 true
 
 
+        -- Potions
         elseif dataType ==
             "PotionsUsed" then
 
@@ -1839,13 +1639,14 @@ local function updateQuestState()
                 true
 
 
+        -- Aura quests
         elseif dataType ==
             "AuraChestsOpened" then
 
-            QuestState.Auras =
-                true
+            auraQuestCount += 1
 
 
+        -- Gold Pets
         elseif dataType ==
             "ShinyCrafted" then
 
@@ -1853,6 +1654,7 @@ local function updateQuestState()
                 true
 
 
+        -- Rainbow Pets
         elseif dataType ==
             "RainbowCrafted" then
 
@@ -1860,6 +1662,7 @@ local function updateQuestState()
                 true
 
 
+        -- Crates
         elseif dataType ==
             "TotalCratesOpened" then
 
@@ -1867,6 +1670,7 @@ local function updateQuestState()
                 true
 
 
+        -- Fruits
         elseif dataType ==
             "TotalFruitsUsed" then
 
@@ -1877,8 +1681,20 @@ local function updateQuestState()
 
     end
 
+
+    --// =====================================================
+    --// ONLY DO AURA QUESTS IF THERE ARE 3 OR MORE
+    --// =====================================================
+
+    QuestState.Auras =
+        auraQuestCount >= 3
+
 end
 
+
+--// =========================================================
+--// QUEST SCAN LOOP
+--// =========================================================
 
 task.spawn(function()
 
@@ -1910,12 +1726,13 @@ end)
 
 
 --// =========================================================
---// QUEST HATCH WORKER
+--// AUTO QUEST HATCH
 --//
 --// PRIORITY:
---// Secret   -> Basic
---// Eternal  -> City
---// Eggs     -> Magic
+--//
+--// SECRET = BASIC
+--// ETERNAL = CITY
+--// EGGS = MAGIC
 --// =========================================================
 
 task.spawn(function()
@@ -1924,7 +1741,10 @@ task.spawn(function()
 
         if not Settings.AutoQuests then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -1983,7 +1803,7 @@ end)
 
 
 --// =========================================================
---// QUEST BOOST WORKER
+--// QUEST BOOST
 --// =========================================================
 
 task.spawn(function()
@@ -1993,7 +1813,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Boosts then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2038,7 +1861,7 @@ end)
 
 
 --// =========================================================
---// QUEST POTION WORKER
+--// QUEST POTIONS
 --// =========================================================
 
 task.spawn(function()
@@ -2048,7 +1871,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Potions then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2093,7 +1919,7 @@ end)
 
 
 --// =========================================================
---// QUEST FRUIT WORKER
+--// QUEST FRUITS
 --// =========================================================
 
 task.spawn(function()
@@ -2103,7 +1929,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Fruits then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2148,7 +1977,9 @@ end)
 
 
 --// =========================================================
---// QUEST AURA WORKER
+--// QUEST AURAS
+--//
+--// ONLY RUNS WITH 3+ ACTIVE AURA QUESTS
 --// =========================================================
 
 task.spawn(function()
@@ -2158,7 +1989,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Auras then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2202,7 +2036,7 @@ end)
 
 
 --// =========================================================
---// QUEST CRATE WORKER
+--// QUEST CRATES
 --// =========================================================
 
 task.spawn(function()
@@ -2212,7 +2046,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Crates then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2240,7 +2077,7 @@ end)
 
 
 --// =========================================================
---// QUEST GOLD WORKER
+--// QUEST GOLD
 --// =========================================================
 
 task.spawn(function()
@@ -2250,7 +2087,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Gold then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2277,7 +2117,7 @@ end)
 
 
 --// =========================================================
---// QUEST RAINBOW WORKER
+--// QUEST RAINBOW
 --// =========================================================
 
 task.spawn(function()
@@ -2287,7 +2127,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Rainbow then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
