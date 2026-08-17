@@ -1,5 +1,5 @@
 --// =========================================================
---// CLEAN UP PREVIOUS OPTIMIZED VERSION
+--// CLEAN UP PREVIOUS VERSION
 --// =========================================================
 
 if _G.__AUTO_FARM_CLEANUP then
@@ -24,6 +24,30 @@ local Events = ReplicatedStorage:WaitForChild("Events")
 
 
 --// =========================================================
+--// MODULES
+--// =========================================================
+
+local SeasonQuests = require(
+    ReplicatedStorage
+        :WaitForChild("Modules")
+        :WaitForChild("SeasonQuests")
+)
+
+local MerchantModule = require(
+    ReplicatedStorage
+        :WaitForChild("Modules")
+        :WaitForChild("Merchant")
+)
+
+local ReplicaController = require(
+    ReplicatedStorage
+        :WaitForChild("Modules")
+        :WaitForChild("Libraries")
+        :WaitForChild("ReplicaController")
+)
+
+
+--// =========================================================
 --// SETTINGS
 --// =========================================================
 
@@ -41,7 +65,7 @@ local ScreenGui
 
 
 --// =========================================================
---// CONNECTION TRACKING / CLEANUP
+--// CLEANUP
 --// =========================================================
 
 local function trackConnection(connection)
@@ -65,11 +89,9 @@ local function cleanup()
     Settings.AutoQuests = false
 
     for _, connection in ipairs(Connections) do
-
         pcall(function()
             connection:Disconnect()
         end)
-
     end
 
     table.clear(Connections)
@@ -83,7 +105,6 @@ local function cleanup()
     end
 end
 
-
 _G.__AUTO_FARM_CLEANUP = cleanup
 
 
@@ -95,33 +116,13 @@ trackConnection(
     Player.Idled:Connect(function()
 
         pcall(function()
-
             VirtualUser:CaptureController()
             VirtualUser:ClickButton2(
                 Vector2.new(0, 0)
             )
-
         end)
 
     end)
-)
-
-
---// =========================================================
---// SEASON QUEST MODULES
---// =========================================================
-
-local SeasonQuests = require(
-    ReplicatedStorage
-        :WaitForChild("Modules")
-        :WaitForChild("SeasonQuests")
-)
-
-local ReplicaController = require(
-    ReplicatedStorage
-        :WaitForChild("Modules")
-        :WaitForChild("Libraries")
-        :WaitForChild("ReplicaController")
 )
 
 
@@ -225,6 +226,37 @@ local PotionIndex = 1
 
 
 --// =========================================================
+--// MERCHANT ITEMS
+--// =========================================================
+
+local MerchantItems = {}
+
+do
+    local allSpawnItems =
+        MerchantModule.getAll("Spawn")
+
+    for itemName, data in pairs(allSpawnItems) do
+
+        table.insert(
+            MerchantItems,
+            {
+                Name = itemName,
+                Lay = data.lay or 999
+            }
+        )
+
+    end
+
+    table.sort(
+        MerchantItems,
+        function(a, b)
+            return a.Lay < b.Lay
+        end
+    )
+end
+
+
+--// =========================================================
 --// TIMINGS
 --// =========================================================
 
@@ -235,10 +267,12 @@ local QUEST_ITEM_DELAY = 0.15
 local QUEST_CRATE_DELAY = 0.15
 local QUEST_AURA_DELAY = 1
 local QUEST_CRAFT_DELAY = 1
-
 local QUEST_SCAN_DELAY = 0.25
 
--- When features are OFF they barely wake up.
+local MERCHANT_ITEM_DELAY = 0.05
+local MERCHANT_CYCLE_DELAY = 0.25
+
+-- When features are OFF
 local IDLE_DELAY = 1
 
 
@@ -255,25 +289,44 @@ end
 
 
 --// =========================================================
---// GUI
+--// SCREEN GUI
 --// =========================================================
 
 ScreenGui = Instance.new("ScreenGui")
+
 ScreenGui.Name = "AutoFarmGui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
 
+--// =========================================================
+--// MAIN FRAME
+--// =========================================================
+
 local Main = Instance.new("Frame")
 
 Main.Size =
-    UDim2.new(0, 260, 0, 340)
+    UDim2.new(
+        0,
+        260,
+        0,
+        340
+    )
 
 Main.Position =
-    UDim2.new(0.5, -130, 0.5, -170)
+    UDim2.new(
+        0.5,
+        -130,
+        0.5,
+        -170
+    )
 
 Main.BackgroundColor3 =
-    Color3.fromRGB(30, 30, 30)
+    Color3.fromRGB(
+        30,
+        30,
+        30
+    )
 
 Main.BorderSizePixel = 0
 Main.Active = true
@@ -297,10 +350,19 @@ local TitleBar =
     Instance.new("Frame")
 
 TitleBar.Size =
-    UDim2.new(1, 0, 0, 40)
+    UDim2.new(
+        1,
+        0,
+        0,
+        40
+    )
 
 TitleBar.BackgroundColor3 =
-    Color3.fromRGB(45, 45, 45)
+    Color3.fromRGB(
+        45,
+        45,
+        45
+    )
 
 TitleBar.BorderSizePixel = 0
 TitleBar.Active = true
@@ -320,16 +382,31 @@ local Title =
     Instance.new("TextLabel")
 
 Title.Size =
-    UDim2.new(1, -50, 1, 0)
+    UDim2.new(
+        1,
+        -50,
+        1,
+        0
+    )
 
 Title.Position =
-    UDim2.new(0, 10, 0, 0)
+    UDim2.new(
+        0,
+        10,
+        0,
+        0
+    )
 
 Title.BackgroundTransparency = 1
 
 Title.Text = "Auto Farm"
+
 Title.TextColor3 =
-    Color3.fromRGB(255, 255, 255)
+    Color3.fromRGB(
+        255,
+        255,
+        255
+    )
 
 Title.TextSize = 20
 Title.Font = Enum.Font.GothamBold
@@ -341,29 +418,48 @@ Title.Parent = TitleBar
 
 
 --// =========================================================
---// CLOSE
+--// CLOSE BUTTON
 --// =========================================================
 
 local Close =
     Instance.new("TextButton")
 
 Close.Size =
-    UDim2.new(0, 30, 0, 30)
+    UDim2.new(
+        0,
+        30,
+        0,
+        30
+    )
 
 Close.Position =
-    UDim2.new(1, -35, 0, 5)
+    UDim2.new(
+        1,
+        -35,
+        0,
+        5
+    )
 
 Close.BackgroundColor3 =
-    Color3.fromRGB(180, 60, 60)
+    Color3.fromRGB(
+        180,
+        60,
+        60
+    )
 
 Close.Text = "X"
+
 Close.TextColor3 =
-    Color3.fromRGB(255, 255, 255)
+    Color3.fromRGB(
+        255,
+        255,
+        255
+    )
 
 Close.Font = Enum.Font.GothamBold
 Close.TextSize = 16
-
 Close.BorderSizePixel = 0
+
 Close.Parent = TitleBar
 
 
@@ -398,8 +494,12 @@ TitleBar.InputBegan:Connect(function(input)
         Enum.UserInputType.Touch then
 
         dragging = true
-        dragStart = input.Position
-        startPosition = Main.Position
+
+        dragStart =
+            input.Position
+
+        startPosition =
+            Main.Position
 
         input.Changed:Connect(function()
 
@@ -430,7 +530,6 @@ trackConnection(
             Enum.UserInputType.Touch then
 
             return
-
         end
 
         local delta =
@@ -463,19 +562,37 @@ local function createToggle(
         Instance.new("TextButton")
 
     Button.Size =
-        UDim2.new(1, -30, 0, 45)
+        UDim2.new(
+            1,
+            -30,
+            0,
+            45
+        )
 
     Button.Position =
-        UDim2.new(0, 15, 0, yPosition)
+        UDim2.new(
+            0,
+            15,
+            0,
+            yPosition
+        )
 
     Button.BackgroundColor3 =
-        Color3.fromRGB(150, 55, 55)
+        Color3.fromRGB(
+            150,
+            55,
+            55
+        )
 
     Button.Text =
         name .. ": OFF"
 
     Button.TextColor3 =
-        Color3.fromRGB(255, 255, 255)
+        Color3.fromRGB(
+            255,
+            255,
+            255
+        )
 
     Button.TextSize = 16
     Button.Font = Enum.Font.GothamBold
@@ -528,7 +645,6 @@ local function createToggle(
 
 
     return Button
-
 end
 
 
@@ -550,26 +666,44 @@ createToggle(
 
 
 --// =========================================================
---// HATCH EGGS BUTTON
+--// HATCH BUTTON
 --// =========================================================
 
 local HatchButton =
     Instance.new("TextButton")
 
 HatchButton.Size =
-    UDim2.new(1, -30, 0, 45)
+    UDim2.new(
+        1,
+        -30,
+        0,
+        45
+    )
 
 HatchButton.Position =
-    UDim2.new(0, 15, 0, 165)
+    UDim2.new(
+        0,
+        15,
+        0,
+        165
+    )
 
 HatchButton.BackgroundColor3 =
-    Color3.fromRGB(65, 90, 160)
+    Color3.fromRGB(
+        65,
+        90,
+        160
+    )
 
 HatchButton.Text =
     "Hatch Eggs  ▼"
 
 HatchButton.TextColor3 =
-    Color3.fromRGB(255, 255, 255)
+    Color3.fromRGB(
+        255,
+        255,
+        255
+    )
 
 HatchButton.TextSize = 16
 HatchButton.Font = Enum.Font.GothamBold
@@ -609,13 +743,27 @@ local EggPopup =
     Instance.new("Frame")
 
 EggPopup.Size =
-    UDim2.new(0, 240, 0, 340)
+    UDim2.new(
+        0,
+        240,
+        0,
+        340
+    )
 
 EggPopup.Position =
-    UDim2.new(1, 10, 0, 40)
+    UDim2.new(
+        1,
+        10,
+        0,
+        40
+    )
 
 EggPopup.BackgroundColor3 =
-    Color3.fromRGB(25, 25, 25)
+    Color3.fromRGB(
+        25,
+        25,
+        25
+    )
 
 EggPopup.BorderSizePixel = 0
 EggPopup.Visible = false
@@ -635,16 +783,30 @@ local PopupTitle =
     Instance.new("TextLabel")
 
 PopupTitle.Size =
-    UDim2.new(1, -40, 0, 35)
+    UDim2.new(
+        1,
+        -40,
+        0,
+        35
+    )
 
 PopupTitle.Position =
-    UDim2.new(0, 10, 0, 5)
+    UDim2.new(
+        0,
+        10,
+        0,
+        5
+    )
 
 PopupTitle.BackgroundTransparency = 1
 PopupTitle.Text = "Select Egg"
 
 PopupTitle.TextColor3 =
-    Color3.fromRGB(255, 255, 255)
+    Color3.fromRGB(
+        255,
+        255,
+        255
+    )
 
 PopupTitle.TextSize = 18
 PopupTitle.Font = Enum.Font.GothamBold
@@ -659,25 +821,42 @@ local PopupClose =
     Instance.new("TextButton")
 
 PopupClose.Size =
-    UDim2.new(0, 30, 0, 30)
+    UDim2.new(
+        0,
+        30,
+        0,
+        30
+    )
 
 PopupClose.Position =
-    UDim2.new(1, -35, 0, 5)
+    UDim2.new(
+        1,
+        -35,
+        0,
+        5
+    )
 
 PopupClose.BackgroundColor3 =
-    Color3.fromRGB(150, 55, 55)
+    Color3.fromRGB(
+        150,
+        55,
+        55
+    )
 
 PopupClose.Text = "X"
 
 PopupClose.TextColor3 =
-    Color3.fromRGB(255, 255, 255)
+    Color3.fromRGB(
+        255,
+        255,
+        255
+    )
 
 PopupClose.Font =
     Enum.Font.GothamBold
 
 PopupClose.TextSize = 14
 PopupClose.BorderSizePixel = 0
-
 PopupClose.Parent = EggPopup
 
 
@@ -697,42 +876,50 @@ end)
 
 
 --// =========================================================
---// SELECTED EGG
+--// SELECTED EGG LABEL
 --// =========================================================
 
 local SelectedLabel =
     Instance.new("TextLabel")
 
 SelectedLabel.Size =
-    UDim2.new(1, -20, 0, 30)
+    UDim2.new(
+        1,
+        -20,
+        0,
+        30
+    )
 
 SelectedLabel.Position =
-    UDim2.new(0, 10, 0, 40)
+    UDim2.new(
+        0,
+        10,
+        0,
+        40
+    )
 
 SelectedLabel.BackgroundColor3 =
-    Color3.fromRGB(40, 40, 40)
+    Color3.fromRGB(
+        40,
+        40,
+        40
+    )
 
 SelectedLabel.Text =
     "Selected: " .. SelectedEgg
 
 SelectedLabel.TextColor3 =
-    Color3.fromRGB(255, 255, 255)
+    Color3.fromRGB(
+        255,
+        255,
+        255
+    )
 
 SelectedLabel.TextSize = 14
 SelectedLabel.Font = Enum.Font.GothamBold
 SelectedLabel.BorderSizePixel = 0
 
 SelectedLabel.Parent = EggPopup
-
-
-local SelectedCorner =
-    Instance.new("UICorner")
-
-SelectedCorner.CornerRadius =
-    UDim.new(0, 6)
-
-SelectedCorner.Parent =
-    SelectedLabel
 
 
 --// =========================================================
@@ -743,19 +930,38 @@ local EggScroll =
     Instance.new("ScrollingFrame")
 
 EggScroll.Size =
-    UDim2.new(1, -20, 0, 205)
+    UDim2.new(
+        1,
+        -20,
+        0,
+        205
+    )
 
 EggScroll.Position =
-    UDim2.new(0, 10, 0, 80)
+    UDim2.new(
+        0,
+        10,
+        0,
+        80
+    )
 
 EggScroll.BackgroundColor3 =
-    Color3.fromRGB(35, 35, 35)
+    Color3.fromRGB(
+        35,
+        35,
+        35
+    )
 
 EggScroll.BorderSizePixel = 0
 EggScroll.ScrollBarThickness = 6
 
 EggScroll.CanvasSize =
-    UDim2.new(0, 0, 0, 0)
+    UDim2.new(
+        0,
+        0,
+        0,
+        0
+    )
 
 EggScroll.AutomaticCanvasSize =
     Enum.AutomaticSize.Y
@@ -806,19 +1012,32 @@ for _, eggName in ipairs(Eggs) do
         Instance.new("TextButton")
 
     EggButton.Size =
-        UDim2.new(1, -10, 0, 38)
+        UDim2.new(
+            1,
+            -10,
+            0,
+            38
+        )
 
     EggButton.BackgroundColor3 =
-        Color3.fromRGB(60, 60, 60)
+        Color3.fromRGB(
+            60,
+            60,
+            60
+        )
 
-    EggButton.Text = eggName
+    EggButton.Text =
+        eggName
 
     EggButton.TextColor3 =
-        Color3.fromRGB(255, 255, 255)
+        Color3.fromRGB(
+            255,
+            255,
+            255
+        )
 
     EggButton.TextSize = 15
     EggButton.Font = Enum.Font.GothamBold
-
     EggButton.BorderSizePixel = 0
     EggButton.Parent = EggScroll
 
@@ -839,10 +1058,12 @@ for _, eggName in ipairs(Eggs) do
 
     EggButton.MouseButton1Click:Connect(function()
 
-        SelectedEgg = eggName
+        SelectedEgg =
+            eggName
 
         SelectedLabel.Text =
             "Selected: " .. eggName
+
 
         for _, button in pairs(EggButtons) do
 
@@ -854,6 +1075,7 @@ for _, eggName in ipairs(Eggs) do
                 )
 
         end
+
 
         EggButton.BackgroundColor3 =
             Color3.fromRGB(
@@ -868,52 +1090,64 @@ end
 
 
 EggButtons["Basic"].BackgroundColor3 =
-    Color3.fromRGB(55, 150, 75)
+    Color3.fromRGB(
+        55,
+        150,
+        75
+    )
 
 
 --// =========================================================
---// AUTO HATCH BUTTON
+--// AUTO HATCH TOGGLE
 --// =========================================================
 
 local AutoHatchButton =
     Instance.new("TextButton")
 
 AutoHatchButton.Size =
-    UDim2.new(1, -20, 0, 40)
+    UDim2.new(
+        1,
+        -20,
+        0,
+        40
+    )
 
 AutoHatchButton.Position =
-    UDim2.new(0, 10, 1, -50)
+    UDim2.new(
+        0,
+        10,
+        1,
+        -50
+    )
 
 AutoHatchButton.BackgroundColor3 =
-    Color3.fromRGB(150, 55, 55)
+    Color3.fromRGB(
+        150,
+        55,
+        55
+    )
 
 AutoHatchButton.Text =
     "Auto Hatch: OFF"
 
 AutoHatchButton.TextColor3 =
-    Color3.fromRGB(255, 255, 255)
+    Color3.fromRGB(
+        255,
+        255,
+        255
+    )
 
 AutoHatchButton.TextSize = 15
 AutoHatchButton.Font = Enum.Font.GothamBold
 AutoHatchButton.BorderSizePixel = 0
-
 AutoHatchButton.Parent = EggPopup
-
-
-local AutoHatchCorner =
-    Instance.new("UICorner")
-
-AutoHatchCorner.CornerRadius =
-    UDim.new(0, 7)
-
-AutoHatchCorner.Parent =
-    AutoHatchButton
 
 
 AutoHatchButton.MouseButton1Click:Connect(function()
 
     Settings.Hatch =
         not Settings.Hatch
+
 
     if Settings.Hatch then
 
@@ -981,10 +1215,8 @@ task.spawn(function()
     while alive do
 
         if not Settings.Auras then
-
             task.wait(IDLE_DELAY)
             continue
-
         end
 
 
@@ -1017,7 +1249,7 @@ end)
 
 
 --// =========================================================
---// MERCHANT WORKER
+--// MERCHANT - BUY EVERYTHING
 --// =========================================================
 
 task.spawn(function()
@@ -1032,64 +1264,38 @@ task.spawn(function()
         end
 
 
-        pcall(function()
+        for _, merchantItem in ipairs(MerchantItems) do
 
-            Events
-                :WaitForChild("Click")
-                :FireServer()
+            if not alive
+                or not Settings.Merchant then
 
-        end)
+                break
 
-
-        pcall(function()
-
-            Functions
-                :WaitForChild("MerchantPurchase")
-                :InvokeServer(
-                    "Spawn",
-                    "ClickPotionUses"
-                )
-
-        end)
+            end
 
 
-        pcall(function()
+            pcall(function()
 
-            Functions
-                :WaitForChild("MerchantPurchase")
-                :InvokeServer(
-                    "Spawn",
-                    "LuckPotionUses"
-                )
+                Functions
+                    :WaitForChild("MerchantPurchase")
+                    :InvokeServer(
+                        "Spawn",
+                        merchantItem.Name
+                    )
 
-        end)
-
-
-        pcall(function()
-
-            Functions
-                :WaitForChild("MerchantPurchase")
-                :InvokeServer(
-                    "Spawn",
-                    "HatchPotionUses"
-                )
-
-        end)
+            end)
 
 
-        pcall(function()
+            task.wait(
+                MERCHANT_ITEM_DELAY
+            )
 
-            Functions
-                :WaitForChild("MerchantPurchase")
-                :InvokeServer(
-                    "Spawn",
-                    "Stock"
-                )
-
-        end)
+        end
 
 
-        task.wait(1)
+        task.wait(
+            MERCHANT_CYCLE_DELAY
+        )
 
     end
 
@@ -1098,7 +1304,6 @@ end)
 
 --// =========================================================
 --// NORMAL AUTO HATCH
---// Paused during AutoQuests
 --// =========================================================
 
 task.spawn(function()
@@ -1168,7 +1373,7 @@ end)
 
 
 --// =========================================================
---// QUEST DATA HELPERS
+--// QUEST TABLE SEARCH
 --// =========================================================
 
 local function looksLikeQuestList(tbl)
@@ -1309,6 +1514,7 @@ local function findStat(
                     visited
                 )
 
+
             if result ~= nil then
                 return result
             end
@@ -1324,14 +1530,7 @@ end
 
 
 --// =========================================================
---// OPTIMIZED REPLICA DISCOVERY
---//
---// OLD VERSION:
---// scanned 1 -> 5000 repeatedly.
---//
---// NEW VERSION:
---// checks small batches until it finds the profile,
---// then caches it permanently.
+--// REPLICA DISCOVERY
 --// =========================================================
 
 local QuestReplica = nil
@@ -1442,9 +1641,7 @@ end
 local function getCurrentQuests()
 
     if not questReplicaStillValid() then
-
         searchReplicaBatch()
-
     end
 
 
@@ -1462,11 +1659,6 @@ end
 
 --// =========================================================
 --// CURRENT STAT
---//
---// The SeasonQuests module uses the same profile .Data
---// table when creating quest endAmount values, so we read
---// stats from the cached profile instead of scanning
---// thousands of replicas for every stat.
 --// =========================================================
 
 local function getCurrentStat(statName)
@@ -1520,9 +1712,6 @@ end
 
 --// =========================================================
 --// QUEST STATE
---//
---// Scanner updates this only 4 times/second.
---// Individual quest workers read these booleans.
 --// =========================================================
 
 local QuestState = {
@@ -1604,7 +1793,7 @@ local function updateQuestState()
             questInfo.dataType
 
 
-        -- Ignore time played
+        -- Ignore TimePlayed
         if dataType == "TimePlayed" then
             continue
         end
@@ -1618,7 +1807,8 @@ local function updateQuestState()
 
         if dataType == "Eggs" then
 
-            QuestState.Eggs = true
+            QuestState.Eggs =
+                true
 
 
         elseif dataType ==
@@ -1698,7 +1888,9 @@ task.spawn(function()
 
             clearQuestState()
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
 
             continue
 
@@ -1718,15 +1910,12 @@ end)
 
 
 --// =========================================================
---// AUTO QUEST HATCH WORKER
+--// QUEST HATCH WORKER
 --//
---// STRICT PRIORITY:
---//
---// Secret   = Basic
---// Eternal  = City
---// Eggs     = Magic
---//
---// Only ONE quest hatch type runs at once.
+--// PRIORITY:
+--// Secret   -> Basic
+--// Eternal  -> City
+--// Eggs     -> Magic
 --// =========================================================
 
 task.spawn(function()
@@ -1746,17 +1935,20 @@ task.spawn(function()
 
         if QuestState.SecretHatch then
 
-            egg = SECRET_EGG
+            egg =
+                SECRET_EGG
 
 
         elseif QuestState.EternalHatch then
 
-            egg = ETERNAL_EGG
+            egg =
+                ETERNAL_EGG
 
 
         elseif QuestState.Eggs then
 
-            egg = NORMAL_EGG
+            egg =
+                NORMAL_EGG
 
         end
 
@@ -1791,7 +1983,7 @@ end)
 
 
 --// =========================================================
---// AUTO QUEST BOOST WORKER
+--// QUEST BOOST WORKER
 --// =========================================================
 
 task.spawn(function()
@@ -1846,7 +2038,7 @@ end)
 
 
 --// =========================================================
---// AUTO QUEST POTION WORKER
+--// QUEST POTION WORKER
 --// =========================================================
 
 task.spawn(function()
@@ -1901,7 +2093,7 @@ end)
 
 
 --// =========================================================
---// AUTO QUEST FRUIT WORKER
+--// QUEST FRUIT WORKER
 --// =========================================================
 
 task.spawn(function()
@@ -1956,7 +2148,7 @@ end)
 
 
 --// =========================================================
---// AUTO QUEST AURA WORKER
+--// QUEST AURA WORKER
 --// =========================================================
 
 task.spawn(function()
@@ -2010,7 +2202,7 @@ end)
 
 
 --// =========================================================
---// AUTO QUEST CRATE WORKER
+--// QUEST CRATE WORKER
 --// =========================================================
 
 task.spawn(function()
@@ -2048,7 +2240,7 @@ end)
 
 
 --// =========================================================
---// AUTO QUEST GOLD WORKER
+--// QUEST GOLD WORKER
 --// =========================================================
 
 task.spawn(function()
@@ -2085,7 +2277,7 @@ end)
 
 
 --// =========================================================
---// AUTO QUEST RAINBOW WORKER
+--// QUEST RAINBOW WORKER
 --// =========================================================
 
 task.spawn(function()
