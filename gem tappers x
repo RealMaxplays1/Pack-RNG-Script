@@ -12,6 +12,17 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 local Functions = ReplicatedStorage:WaitForChild("Functions")
 local Events = ReplicatedStorage:WaitForChild("Events")
 
+--// ============================================
+--// ANTI AFK
+--// ============================================
+
+local VirtualUser = game:GetService("VirtualUser")
+
+Player.Idled:Connect(function()
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new(0, 0))
+end)
+
 
 --// =========================================================
 --// SEASON QUEST MODULES
