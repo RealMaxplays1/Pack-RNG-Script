@@ -257,6 +257,9 @@ end
 
 local NORMAL_HATCH_DELAY = 0.10
 
+-- ~50 taps per second
+local AUTO_TAP_DELAY = 0.02
+
 local QUEST_HATCH_DELAY = 0.15
 local QUEST_ITEM_DELAY = 0.15
 local QUEST_CRATE_DELAY = 0.15
@@ -433,7 +436,6 @@ TitleBar.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPosition = Main.Position
 
-
         input.Changed:Connect(function()
 
             if input.UserInputState ==
@@ -467,7 +469,6 @@ trackConnection(
 
         local delta =
             input.Position - dragStart
-
 
         Main.Position =
             UDim2.new(
@@ -530,7 +531,6 @@ local function createToggle(
 
         Settings[settingName] =
             not Settings[settingName]
-
 
         if Settings[settingName] then
 
@@ -717,8 +717,7 @@ local PopupCloseCorner =
 PopupCloseCorner.CornerRadius =
     UDim.new(0, 6)
 
-PopupCloseCorner.Parent =
-    PopupClose
+PopupCloseCorner.Parent = PopupClose
 
 
 PopupClose.MouseButton1Click:Connect(function()
@@ -994,10 +993,8 @@ task.spawn(function()
     while alive do
 
         if not Settings.Auras then
-
             task.wait(IDLE_DELAY)
             continue
-
         end
 
 
@@ -1122,7 +1119,7 @@ end)
 
 
 --// =========================================================
---// AUTO TAP
+--// AUTO TAP - ~50 TAPS/SECOND
 --// =========================================================
 
 task.spawn(function()
@@ -1146,7 +1143,9 @@ task.spawn(function()
         end)
 
 
-        task.wait(0.05)
+        task.wait(
+            AUTO_TAP_DELAY
+        )
 
     end
 
@@ -1530,10 +1529,10 @@ end
 --// QUEST SCANNER
 --//
 --// AURAS:
---// 0 = don't farm
---// 1 = don't farm
---// 2 = don't farm
---// 3+ = farm
+--// 0 = OFF
+--// 1 = OFF
+--// 2 = OFF
+--// 3+ = ON
 --// =========================================================
 
 local function updateQuestState()
@@ -1585,21 +1584,18 @@ local function updateQuestState()
             questInfo.dataType
 
 
-        -- Ignore Time Played
         if dataType ==
             "TimePlayed" then
 
             continue
 
 
-        -- Ignore click quests
         elseif dataType ==
             "UniqueClicks" then
 
             continue
 
 
-        -- Open Eggs
         elseif dataType ==
             "Eggs" then
 
@@ -1607,7 +1603,6 @@ local function updateQuestState()
                 true
 
 
-        -- Eternal Pets
         elseif dataType ==
             "EternalHatched" then
 
@@ -1615,7 +1610,6 @@ local function updateQuestState()
                 true
 
 
-        -- Secret Pets
         elseif dataType ==
             "SecretHatched" then
 
@@ -1623,7 +1617,6 @@ local function updateQuestState()
                 true
 
 
-        -- Boosts
         elseif dataType ==
             "BoostsUsed" then
 
@@ -1631,7 +1624,6 @@ local function updateQuestState()
                 true
 
 
-        -- Potions
         elseif dataType ==
             "PotionsUsed" then
 
@@ -1639,14 +1631,12 @@ local function updateQuestState()
                 true
 
 
-        -- Aura quests
         elseif dataType ==
             "AuraChestsOpened" then
 
             auraQuestCount += 1
 
 
-        -- Gold Pets
         elseif dataType ==
             "ShinyCrafted" then
 
@@ -1654,7 +1644,6 @@ local function updateQuestState()
                 true
 
 
-        -- Rainbow Pets
         elseif dataType ==
             "RainbowCrafted" then
 
@@ -1662,7 +1651,6 @@ local function updateQuestState()
                 true
 
 
-        -- Crates
         elseif dataType ==
             "TotalCratesOpened" then
 
@@ -1670,7 +1658,6 @@ local function updateQuestState()
                 true
 
 
-        -- Fruits
         elseif dataType ==
             "TotalFruitsUsed" then
 
@@ -1682,10 +1669,7 @@ local function updateQuestState()
     end
 
 
-    --// =====================================================
-    --// ONLY DO AURA QUESTS IF THERE ARE 3 OR MORE
-    --// =====================================================
-
+    -- Only farm auras with 3+ unfinished aura quests
     QuestState.Auras =
         auraQuestCount >= 3
 
@@ -1728,11 +1712,9 @@ end)
 --// =========================================================
 --// AUTO QUEST HATCH
 --//
---// PRIORITY:
---//
---// SECRET = BASIC
+--// SECRET  = BASIC
 --// ETERNAL = CITY
---// EGGS = MAGIC
+--// EGGS    = MAGIC
 --// =========================================================
 
 task.spawn(function()
@@ -1813,10 +1795,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Boosts then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -1871,10 +1850,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Potions then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -1929,10 +1905,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Fruits then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -1978,8 +1951,7 @@ end)
 
 --// =========================================================
 --// QUEST AURAS
---//
---// ONLY RUNS WITH 3+ ACTIVE AURA QUESTS
+--// ONLY 3+ AURA QUESTS
 --// =========================================================
 
 task.spawn(function()
@@ -1989,10 +1961,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Auras then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -2046,10 +2015,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Crates then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -2087,10 +2053,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Gold then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
@@ -2127,10 +2090,7 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Rainbow then
 
-            task.wait(
-                IDLE_DELAY
-            )
-
+            task.wait(IDLE_DELAY)
             continue
 
         end
