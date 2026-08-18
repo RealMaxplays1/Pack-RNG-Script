@@ -3162,62 +3162,95 @@ end)
 
 
 --// =========================================================
---// AUTO FISH
---//
---// CONFIRMED CALL:
---// ReplicatedStorage.Functions.Fish
---// RemoteFunction
---// 0 arguments
---//
---// IMPORTANT:
---// Stand inside the fishing area first.
---//
---// NO VirtualUser mouse click
---// NO VirtualInputManager
---// NO EquipRod remote
+--// AUTOFISH - FIXED STATE VERSION
 --// =========================================================
 
+local EquipRodRemote =
+    Events:WaitForChild("EquipRod")
+
+local FishRemote =
+    Functions:WaitForChild("Fish")
+
+
 task.spawn(function()
+
+    local rodEnabled = false
 
     while alive do
 
         if not Settings.AutoFish then
 
-            task.wait(
-                IDLE_DELAY
-            )
+            if rodEnabled then
+
+                pcall(function()
+
+                    EquipRodRemote:FireServer(
+                        false,
+                        "1"
+                    )
+
+                end)
+
+                rodEnabled = false
+            end
+
+            task.wait(0.5)
+            continue
+        end
+
+
+        -- Enable fishing state once
+        if not rodEnabled then
+
+            pcall(function()
+
+                EquipRodRemote:FireServer(
+                    true,
+                    "1"
+                )
+
+            end)
+
+            rodEnabled = true
+
+            -- Your logger showed roughly a 2 second
+            -- delay between EquipRod and Fish.
+            task.wait(2.25)
 
             continue
         end
 
 
         local success,
-            caught =
+            caught,
+            fishData =
             pcall(function()
 
-                return FishRemote
-                    :InvokeServer()
+                return FishRemote:InvokeServer()
 
             end)
 
 
-        if not alive then
-            break
-        end
+        if success and caught == true then
 
-
-        if success
-            and caught == true then
-
-            task.wait(
-                AUTO_FISH_DELAY
-            )
+            -- Fish remote itself takes about 2 sec
+            task.wait(0.5)
 
         else
 
-            task.wait(
-                AUTO_FISH_FAIL_DELAY
-            )
+            -- Reset fishing state if server rejects it
+            rodEnabled = false
+
+            pcall(function()
+
+                EquipRodRemote:FireServer(
+                    false,
+                    "1"
+                )
+
+            end)
+
+            task.wait(0.75)
 
         end
 
