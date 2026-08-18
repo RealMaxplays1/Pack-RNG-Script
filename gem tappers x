@@ -3411,44 +3411,87 @@ end)
 
 
 --// =========================================================
---// AUTOFISH
+--// AUTOFISH - CORRECT FISHING SEQUENCE
 --//
---// EXACT REMOTE FOUND FROM MANUAL FISHING:
+--// EquipRod:
+--//   true
+--//   "1"
 --//
---// ReplicatedStorage.Functions.Fish
---// RemoteFunction
---// ZERO ARGUMENTS
---//
---// NO MOUSE SIMULATION AT ALL.
+--// Fish:
+--//   zero arguments
 --// =========================================================
+
+local EquipRodRemote =
+    Events:WaitForChild("EquipRod")
+
+local FishRemote =
+    Functions:WaitForChild("Fish")
+
 
 task.spawn(function()
 
     while alive do
 
         if not Settings.AutoFish then
+            task.wait(IDLE_DELAY)
+            continue
+        end
 
-            task.wait(
-                IDLE_DELAY
+
+        -- Make sure fishing rod/state is active
+        pcall(function()
+
+            EquipRodRemote:FireServer(
+                true,
+                "1"
             )
+
+        end)
+
+
+        task.wait(0.15)
+
+
+        if not Settings.AutoFish
+            or not alive then
 
             continue
         end
 
 
-        pcall(function()
+        -- Catch fish
+        local success, caught, fishData =
+            pcall(function()
 
-            FishRemote
-                :InvokeServer()
+                return FishRemote:InvokeServer()
 
-        end)
+            end)
 
 
-        task.wait(
-            AUTO_FISH_DELAY
-        )
+        if success then
+
+            -- Fish itself takes roughly 2 seconds,
+            -- so we only need a short delay afterwards.
+            task.wait(0.15)
+
+        else
+
+            task.wait(0.5)
+
+        end
 
     end
+
+
+    -- Unequip when the worker fully ends
+    pcall(function()
+
+        EquipRodRemote:FireServer(
+            false,
+            "1"
+        )
+
+    end)
 
 end)
 
