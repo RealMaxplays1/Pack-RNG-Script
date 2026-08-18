@@ -3411,18 +3411,12 @@ end)
 
 
 --// =========================================================
---// AUTOFISH - CORRECT FISHING SEQUENCE
+--// AUTOFISH - WORKING VERSION
 --//
---// EquipRod:
---//   true
---//   "1"
---//
---// Fish:
---//   zero arguments
+--// IMPORTANT:
+--// Stand inside the fishing area.
+--// The game handles EquipRod itself.
 --// =========================================================
-
-local EquipRodRemote =
-    Events:WaitForChild("EquipRod")
 
 local FishRemote =
     Functions:WaitForChild("Fish")
@@ -3433,34 +3427,12 @@ task.spawn(function()
     while alive do
 
         if not Settings.AutoFish then
-            task.wait(IDLE_DELAY)
+            task.wait(0.5)
             continue
         end
 
 
-        -- Make sure fishing rod/state is active
-        pcall(function()
-
-            EquipRodRemote:FireServer(
-                true,
-                "1"
-            )
-
-        end)
-
-
-        task.wait(0.15)
-
-
-        if not Settings.AutoFish
-            or not alive then
-
-            continue
-        end
-
-
-        -- Catch fish
-        local success, caught, fishData =
+        local success, caught =
             pcall(function()
 
                 return FishRemote:InvokeServer()
@@ -3468,30 +3440,21 @@ task.spawn(function()
             end)
 
 
-        if success then
+        -- Fish:InvokeServer() itself takes around
+        -- 2 seconds to complete.
+        if success and caught == true then
 
-            -- Fish itself takes roughly 2 seconds,
-            -- so we only need a short delay afterwards.
-            task.wait(0.15)
+            -- Short delay before starting next fish
+            task.wait(0.5)
 
         else
 
-            task.wait(0.5)
+            -- Probably not inside fishing area yet
+            task.wait(1)
 
         end
 
     end
-
-
-    -- Unequip when the worker fully ends
-    pcall(function()
-
-        EquipRodRemote:FireServer(
-            false,
-            "1"
-        )
-
-    end)
 
 end)
 
