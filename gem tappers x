@@ -1,5 +1,5 @@
 --// =========================================================
---// CLEANUP OLD VERSION
+--// CLEAN UP PREVIOUS VERSION
 --// =========================================================
 
 if _G.__AUTO_FARM_CLEANUP then
@@ -70,7 +70,6 @@ local function trackConnection(connection)
     return connection
 end
 
-
 local function cleanup()
 
     if not alive then
@@ -99,7 +98,6 @@ local function cleanup()
         _G.__AUTO_FARM_CLEANUP = nil
     end
 end
-
 
 _G.__AUTO_FARM_CLEANUP = cleanup
 
@@ -168,7 +166,7 @@ local AuraPriority = {
 
 
 --// =========================================================
---// QUEST ITEMS
+--// QUEST BOOST ITEMS
 --// =========================================================
 
 local BoostItems = {
@@ -206,25 +204,25 @@ local PotionIndex = 1
 
 local AutoBoostItems = {
 
-    -- APPLES
+    -- APPLE
     "Apple",
     "GoldenApple",
     "DiamondApple",
     "GalaxyApple",
 
-    -- CARROTS
+    -- CARROT
     "Carrot",
     "GoldenCarrot",
     "DiamondCarrot",
     "GalaxyCarrot",
 
-    -- GRAPES
+    -- GRAPE
     "Grape",
     "GoldenGrape",
     "DiamondGrape",
     "GalaxyGrape",
 
-    -- STRAWBERRIES
+    -- STRAWBERRY
     "Strawberry",
     "GoldenStrawberry",
     "DiamondStrawberry",
@@ -263,10 +261,10 @@ local MerchantItems = {}
 
 do
 
-    local allItems =
+    local allSpawnItems =
         MerchantModule.getAll("Spawn")
 
-    for itemName, data in pairs(allItems) do
+    for itemName, data in pairs(allSpawnItems) do
 
         table.insert(
             MerchantItems,
@@ -294,7 +292,7 @@ end
 
 local NORMAL_HATCH_DELAY = 0.10
 
--- ~50/sec
+-- ~50 taps/sec
 local AUTO_TAP_DELAY = 0.02
 
 local QUEST_HATCH_DELAY = 0.15
@@ -312,9 +310,14 @@ local MERCHANT_CYCLE_DELAY = 0.25
 local AUTO_BOOST_SCAN_DELAY = 2
 local AUTO_BOOST_ITEM_DELAY = 0.10
 
--- Fallback protection if active-state cannot be found.
--- Prevents the same boost from being spammed.
-local UNKNOWN_BOOST_RETRY = 300
+-- If a boost use cannot be confirmed,
+-- try again relatively soon.
+local FAILED_BOOST_RETRY = 10
+
+-- If inventory confirms we used one but the
+-- active timer cannot be found, assume it is
+-- active for 5 minutes.
+local ASSUMED_ACTIVE_TIME = 300
 
 local STATS_UPDATE_DELAY = 60
 
@@ -322,7 +325,7 @@ local IDLE_DELAY = 1
 
 
 --// =========================================================
---// GUI
+--// REMOVE OLD GUI
 --// =========================================================
 
 local oldGui =
@@ -332,6 +335,10 @@ if oldGui then
     oldGui:Destroy()
 end
 
+
+--// =========================================================
+--// GUI
+--// =========================================================
 
 ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "AutoFarmGui"
@@ -365,7 +372,7 @@ MainCorner.Parent = Main
 
 
 --// =========================================================
---// TITLE
+--// TITLE BAR
 --// =========================================================
 
 local TitleBar =
@@ -401,10 +408,11 @@ Title.Position =
     UDim2.new(0, 10, 0, 0)
 
 Title.BackgroundTransparency = 1
+
 Title.Text = "Auto Farm"
 
 Title.TextColor3 =
-    Color3.fromRGB(255,255,255)
+    Color3.fromRGB(255, 255, 255)
 
 Title.TextSize = 20
 Title.Font = Enum.Font.GothamBold
@@ -423,18 +431,18 @@ local StatsButton =
     Instance.new("TextButton")
 
 StatsButton.Size =
-    UDim2.new(0,65,0,28)
+    UDim2.new(0, 65, 0, 28)
 
 StatsButton.Position =
-    UDim2.new(1,-105,0,6)
+    UDim2.new(1, -105, 0, 6)
 
 StatsButton.BackgroundColor3 =
-    Color3.fromRGB(90,185,255)
+    Color3.fromRGB(90, 185, 255)
 
 StatsButton.Text = "Stats"
 
 StatsButton.TextColor3 =
-    Color3.fromRGB(255,255,255)
+    Color3.fromRGB(255, 255, 255)
 
 StatsButton.TextSize = 14
 StatsButton.Font = Enum.Font.GothamBold
@@ -446,7 +454,7 @@ local StatsButtonCorner =
     Instance.new("UICorner")
 
 StatsButtonCorner.CornerRadius =
-    UDim.new(0,6)
+    UDim.new(0, 6)
 
 StatsButtonCorner.Parent =
     StatsButton
@@ -460,23 +468,32 @@ local Close =
     Instance.new("TextButton")
 
 Close.Size =
-    UDim2.new(0,30,0,30)
+    UDim2.new(0, 30, 0, 30)
 
 Close.Position =
-    UDim2.new(1,-35,0,5)
+    UDim2.new(1, -35, 0, 5)
 
 Close.BackgroundColor3 =
-    Color3.fromRGB(180,60,60)
+    Color3.fromRGB(180, 60, 60)
 
 Close.Text = "X"
 
 Close.TextColor3 =
-    Color3.fromRGB(255,255,255)
+    Color3.fromRGB(255, 255, 255)
 
-Close.TextSize = 16
 Close.Font = Enum.Font.GothamBold
+Close.TextSize = 16
 Close.BorderSizePixel = 0
 Close.Parent = TitleBar
+
+
+local CloseCorner =
+    Instance.new("UICorner")
+
+CloseCorner.CornerRadius =
+    UDim.new(0, 6)
+
+CloseCorner.Parent = Close
 
 
 Close.MouseButton1Click:Connect(function()
@@ -485,7 +502,160 @@ end)
 
 
 --// =========================================================
---// DRAG
+--// STATS POPUP
+--// =========================================================
+
+local StatsPopup =
+    Instance.new("Frame")
+
+StatsPopup.Size =
+    UDim2.new(0, 210, 0, 165)
+
+StatsPopup.Position =
+    UDim2.new(1, 10, 0, 0)
+
+StatsPopup.BackgroundColor3 =
+    Color3.fromRGB(25, 25, 25)
+
+StatsPopup.BorderSizePixel = 0
+StatsPopup.Visible = false
+StatsPopup.Parent = Main
+
+
+local StatsPopupCorner =
+    Instance.new("UICorner")
+
+StatsPopupCorner.CornerRadius =
+    UDim.new(0, 10)
+
+StatsPopupCorner.Parent =
+    StatsPopup
+
+
+local StatsTitle =
+    Instance.new("TextLabel")
+
+StatsTitle.Size =
+    UDim2.new(1, -20, 0, 32)
+
+StatsTitle.Position =
+    UDim2.new(0, 10, 0, 5)
+
+StatsTitle.BackgroundTransparency = 1
+StatsTitle.Text = "Session Hatch Stats"
+
+StatsTitle.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
+StatsTitle.TextSize = 17
+StatsTitle.Font = Enum.Font.GothamBold
+
+StatsTitle.TextXAlignment =
+    Enum.TextXAlignment.Left
+
+StatsTitle.Parent = StatsPopup
+
+
+local EggsStat =
+    Instance.new("TextLabel")
+
+EggsStat.Size =
+    UDim2.new(1, -20, 0, 26)
+
+EggsStat.Position =
+    UDim2.new(0, 10, 0, 43)
+
+EggsStat.BackgroundTransparency = 1
+EggsStat.Text = "Eggs: Loading..."
+
+EggsStat.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
+EggsStat.TextSize = 15
+EggsStat.Font = Enum.Font.Gotham
+
+EggsStat.TextXAlignment =
+    Enum.TextXAlignment.Left
+
+EggsStat.Parent = StatsPopup
+
+
+local SecretStat =
+    Instance.new("TextLabel")
+
+SecretStat.Size =
+    UDim2.new(1, -20, 0, 26)
+
+SecretStat.Position =
+    UDim2.new(0, 10, 0, 71)
+
+SecretStat.BackgroundTransparency = 1
+SecretStat.Text = "Secrets: Loading..."
+
+SecretStat.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
+SecretStat.TextSize = 15
+SecretStat.Font = Enum.Font.Gotham
+
+SecretStat.TextXAlignment =
+    Enum.TextXAlignment.Left
+
+SecretStat.Parent = StatsPopup
+
+
+local DivineStat =
+    Instance.new("TextLabel")
+
+DivineStat.Size =
+    UDim2.new(1, -20, 0, 26)
+
+DivineStat.Position =
+    UDim2.new(0, 10, 0, 99)
+
+DivineStat.BackgroundTransparency = 1
+DivineStat.Text = "Divines: Loading..."
+
+DivineStat.TextColor3 =
+    Color3.fromRGB(255, 255, 255)
+
+DivineStat.TextSize = 15
+DivineStat.Font = Enum.Font.Gotham
+
+DivineStat.TextXAlignment =
+    Enum.TextXAlignment.Left
+
+DivineStat.Parent = StatsPopup
+
+
+local StatsUpdated =
+    Instance.new("TextLabel")
+
+StatsUpdated.Size =
+    UDim2.new(1, -20, 0, 25)
+
+StatsUpdated.Position =
+    UDim2.new(0, 10, 1, -31)
+
+StatsUpdated.BackgroundTransparency = 1
+
+StatsUpdated.Text =
+    "Session • updates every 60s"
+
+StatsUpdated.TextColor3 =
+    Color3.fromRGB(155, 155, 155)
+
+StatsUpdated.TextSize = 11
+StatsUpdated.Font = Enum.Font.Gotham
+
+StatsUpdated.TextXAlignment =
+    Enum.TextXAlignment.Left
+
+StatsUpdated.Parent = StatsPopup
+
+
+--// =========================================================
+--// DRAGGING
 --// =========================================================
 
 local dragging = false
@@ -502,12 +672,8 @@ trackConnection(
             Enum.UserInputType.Touch then
 
             dragging = true
-
-            dragStart =
-                input.Position
-
-            startPosition =
-                Main.Position
+            dragStart = input.Position
+            startPosition = Main.Position
 
         end
 
@@ -547,13 +713,13 @@ trackConnection(
         end
 
         local delta =
-            input.Position -
-            dragStart
+            input.Position - dragStart
 
         Main.Position =
             UDim2.new(
                 startPosition.X.Scale,
                 startPosition.X.Offset + delta.X,
+
                 startPosition.Y.Scale,
                 startPosition.Y.Offset + delta.Y
             )
@@ -563,7 +729,7 @@ trackConnection(
 
 
 --// =========================================================
---// TOGGLES
+--// TOGGLE CREATOR
 --// =========================================================
 
 local function createToggle(
@@ -576,19 +742,19 @@ local function createToggle(
         Instance.new("TextButton")
 
     Button.Size =
-        UDim2.new(1,-30,0,45)
+        UDim2.new(1, -30, 0, 45)
 
     Button.Position =
-        UDim2.new(0,15,0,yPosition)
+        UDim2.new(0, 15, 0, yPosition)
 
     Button.BackgroundColor3 =
-        Color3.fromRGB(150,55,55)
+        Color3.fromRGB(150, 55, 55)
 
     Button.Text =
         name .. ": OFF"
 
     Button.TextColor3 =
-        Color3.fromRGB(255,255,255)
+        Color3.fromRGB(255, 255, 255)
 
     Button.TextSize = 16
     Button.Font = Enum.Font.GothamBold
@@ -600,7 +766,7 @@ local function createToggle(
         Instance.new("UICorner")
 
     Corner.CornerRadius =
-        UDim.new(0,8)
+        UDim.new(0, 8)
 
     Corner.Parent = Button
 
@@ -609,6 +775,7 @@ local function createToggle(
 
         Settings[settingName] =
             not Settings[settingName]
+
 
         if Settings[settingName] then
 
@@ -643,6 +810,10 @@ local function createToggle(
 end
 
 
+--// =========================================================
+--// MAIN BUTTONS
+--// =========================================================
+
 createToggle(
     "Auras",
     55,
@@ -664,24 +835,34 @@ local HatchButton =
     Instance.new("TextButton")
 
 HatchButton.Size =
-    UDim2.new(1,-30,0,45)
+    UDim2.new(1, -30, 0, 45)
 
 HatchButton.Position =
-    UDim2.new(0,15,0,165)
+    UDim2.new(0, 15, 0, 165)
 
 HatchButton.BackgroundColor3 =
-    Color3.fromRGB(65,90,160)
+    Color3.fromRGB(65, 90, 160)
 
 HatchButton.Text =
     "Hatch Eggs  ▼"
 
 HatchButton.TextColor3 =
-    Color3.fromRGB(255,255,255)
+    Color3.fromRGB(255, 255, 255)
 
 HatchButton.TextSize = 16
 HatchButton.Font = Enum.Font.GothamBold
 HatchButton.BorderSizePixel = 0
 HatchButton.Parent = Main
+
+
+local HatchCorner =
+    Instance.new("UICorner")
+
+HatchCorner.CornerRadius =
+    UDim.new(0, 8)
+
+HatchCorner.Parent =
+    HatchButton
 
 
 createToggle(
@@ -696,7 +877,6 @@ createToggle(
     "AutoQuests"
 )
 
--- NEW BUTTON
 createToggle(
     "Auto Boosts",
     330,
@@ -712,36 +892,50 @@ local EggPopup =
     Instance.new("Frame")
 
 EggPopup.Size =
-    UDim2.new(0,240,0,340)
+    UDim2.new(0, 240, 0, 340)
 
 EggPopup.Position =
-    UDim2.new(1,10,0,40)
+    UDim2.new(1, 10, 0, 40)
 
 EggPopup.BackgroundColor3 =
-    Color3.fromRGB(25,25,25)
+    Color3.fromRGB(25, 25, 25)
 
 EggPopup.BorderSizePixel = 0
 EggPopup.Visible = false
 EggPopup.Parent = Main
 
 
+local EggPopupCorner =
+    Instance.new("UICorner")
+
+EggPopupCorner.CornerRadius =
+    UDim.new(0, 10)
+
+EggPopupCorner.Parent =
+    EggPopup
+
+
 local PopupTitle =
     Instance.new("TextLabel")
 
 PopupTitle.Size =
-    UDim2.new(1,-40,0,35)
+    UDim2.new(1, -40, 0, 35)
 
 PopupTitle.Position =
-    UDim2.new(0,10,0,5)
+    UDim2.new(0, 10, 0, 5)
 
 PopupTitle.BackgroundTransparency = 1
 PopupTitle.Text = "Select Egg"
 
 PopupTitle.TextColor3 =
-    Color3.fromRGB(255,255,255)
+    Color3.fromRGB(255, 255, 255)
 
 PopupTitle.TextSize = 18
 PopupTitle.Font = Enum.Font.GothamBold
+
+PopupTitle.TextXAlignment =
+    Enum.TextXAlignment.Left
+
 PopupTitle.Parent = EggPopup
 
 
@@ -749,19 +943,22 @@ local PopupClose =
     Instance.new("TextButton")
 
 PopupClose.Size =
-    UDim2.new(0,30,0,30)
+    UDim2.new(0, 30, 0, 30)
 
 PopupClose.Position =
-    UDim2.new(1,-35,0,5)
+    UDim2.new(1, -35, 0, 5)
 
 PopupClose.BackgroundColor3 =
-    Color3.fromRGB(150,55,55)
+    Color3.fromRGB(150, 55, 55)
 
 PopupClose.Text = "X"
 
 PopupClose.TextColor3 =
-    Color3.fromRGB(255,255,255)
+    Color3.fromRGB(255, 255, 255)
 
+PopupClose.Font = Enum.Font.GothamBold
+PopupClose.TextSize = 14
+PopupClose.BorderSizePixel = 0
 PopupClose.Parent = EggPopup
 
 
@@ -774,20 +971,23 @@ local SelectedLabel =
     Instance.new("TextLabel")
 
 SelectedLabel.Size =
-    UDim2.new(1,-20,0,30)
+    UDim2.new(1, -20, 0, 30)
 
 SelectedLabel.Position =
-    UDim2.new(0,10,0,40)
+    UDim2.new(0, 10, 0, 40)
 
 SelectedLabel.BackgroundColor3 =
-    Color3.fromRGB(40,40,40)
+    Color3.fromRGB(40, 40, 40)
 
 SelectedLabel.Text =
     "Selected: " .. SelectedEgg
 
 SelectedLabel.TextColor3 =
-    Color3.fromRGB(255,255,255)
+    Color3.fromRGB(255, 255, 255)
 
+SelectedLabel.TextSize = 14
+SelectedLabel.Font = Enum.Font.GothamBold
+SelectedLabel.BorderSizePixel = 0
 SelectedLabel.Parent = EggPopup
 
 
@@ -795,22 +995,22 @@ local EggScroll =
     Instance.new("ScrollingFrame")
 
 EggScroll.Size =
-    UDim2.new(1,-20,0,205)
+    UDim2.new(1, -20, 0, 205)
 
 EggScroll.Position =
-    UDim2.new(0,10,0,80)
+    UDim2.new(0, 10, 0, 80)
 
 EggScroll.BackgroundColor3 =
-    Color3.fromRGB(35,35,35)
+    Color3.fromRGB(35, 35, 35)
 
 EggScroll.BorderSizePixel = 0
 EggScroll.ScrollBarThickness = 6
 
+EggScroll.CanvasSize =
+    UDim2.new(0, 0, 0, 0)
+
 EggScroll.AutomaticCanvasSize =
     Enum.AutomaticSize.Y
-
-EggScroll.CanvasSize =
-    UDim2.new()
 
 EggScroll.Parent = EggPopup
 
@@ -819,9 +1019,30 @@ local EggLayout =
     Instance.new("UIListLayout")
 
 EggLayout.Padding =
-    UDim.new(0,5)
+    UDim.new(0, 5)
+
+EggLayout.SortOrder =
+    Enum.SortOrder.LayoutOrder
 
 EggLayout.Parent = EggScroll
+
+
+local EggPadding =
+    Instance.new("UIPadding")
+
+EggPadding.PaddingTop =
+    UDim.new(0, 5)
+
+EggPadding.PaddingBottom =
+    UDim.new(0, 5)
+
+EggPadding.PaddingLeft =
+    UDim.new(0, 5)
+
+EggPadding.PaddingRight =
+    UDim.new(0, 5)
+
+EggPadding.Parent = EggScroll
 
 
 local EggButtons = {}
@@ -829,41 +1050,52 @@ local EggButtons = {}
 
 for _, eggName in ipairs(Eggs) do
 
-    local Button =
+    local EggButton =
         Instance.new("TextButton")
 
-    Button.Size =
-        UDim2.new(1,-10,0,38)
+    EggButton.Size =
+        UDim2.new(1, -10, 0, 38)
 
-    Button.BackgroundColor3 =
-        Color3.fromRGB(60,60,60)
+    EggButton.BackgroundColor3 =
+        Color3.fromRGB(60, 60, 60)
 
-    Button.Text = eggName
+    EggButton.Text = eggName
 
-    Button.TextColor3 =
-        Color3.fromRGB(255,255,255)
+    EggButton.TextColor3 =
+        Color3.fromRGB(255, 255, 255)
 
-    Button.Font =
-        Enum.Font.GothamBold
+    EggButton.TextSize = 15
+    EggButton.Font = Enum.Font.GothamBold
+    EggButton.BorderSizePixel = 0
+    EggButton.Parent = EggScroll
 
-    Button.Parent = EggScroll
+
+    local EggCorner =
+        Instance.new("UICorner")
+
+    EggCorner.CornerRadius =
+        UDim.new(0, 6)
+
+    EggCorner.Parent =
+        EggButton
 
 
     EggButtons[eggName] =
-        Button
+        EggButton
 
 
-    Button.MouseButton1Click:Connect(function()
+    EggButton.MouseButton1Click:Connect(function()
 
-        SelectedEgg = eggName
+        SelectedEgg =
+            eggName
 
         SelectedLabel.Text =
             "Selected: " .. eggName
 
 
-        for _, other in pairs(EggButtons) do
+        for _, button in pairs(EggButtons) do
 
-            other.BackgroundColor3 =
+            button.BackgroundColor3 =
                 Color3.fromRGB(
                     60,
                     60,
@@ -873,7 +1105,7 @@ for _, eggName in ipairs(Eggs) do
         end
 
 
-        Button.BackgroundColor3 =
+        EggButton.BackgroundColor3 =
             Color3.fromRGB(
                 55,
                 150,
@@ -885,28 +1117,35 @@ for _, eggName in ipairs(Eggs) do
 end
 
 
-EggButtons.Basic.BackgroundColor3 =
-    Color3.fromRGB(55,150,75)
+EggButtons["Basic"].BackgroundColor3 =
+    Color3.fromRGB(55, 150, 75)
 
+
+--// =========================================================
+--// AUTO HATCH BUTTON
+--// =========================================================
 
 local AutoHatchButton =
     Instance.new("TextButton")
 
 AutoHatchButton.Size =
-    UDim2.new(1,-20,0,40)
+    UDim2.new(1, -20, 0, 40)
 
 AutoHatchButton.Position =
-    UDim2.new(0,10,1,-50)
+    UDim2.new(0, 10, 1, -50)
 
 AutoHatchButton.BackgroundColor3 =
-    Color3.fromRGB(150,55,55)
+    Color3.fromRGB(150, 55, 55)
 
 AutoHatchButton.Text =
     "Auto Hatch: OFF"
 
 AutoHatchButton.TextColor3 =
-    Color3.fromRGB(255,255,255)
+    Color3.fromRGB(255, 255, 255)
 
+AutoHatchButton.TextSize = 15
+AutoHatchButton.Font = Enum.Font.GothamBold
+AutoHatchButton.BorderSizePixel = 0
 AutoHatchButton.Parent = EggPopup
 
 
@@ -931,6 +1170,13 @@ AutoHatchButton.MouseButton1Click:Connect(function()
         HatchButton.Text =
             "Hatch Eggs: ON  ▼"
 
+        HatchButton.BackgroundColor3 =
+            Color3.fromRGB(
+                55,
+                150,
+                75
+            )
+
     else
 
         AutoHatchButton.Text =
@@ -946,6 +1192,13 @@ AutoHatchButton.MouseButton1Click:Connect(function()
         HatchButton.Text =
             "Hatch Eggs  ▼"
 
+        HatchButton.BackgroundColor3 =
+            Color3.fromRGB(
+                65,
+                90,
+                160
+            )
+
     end
 
 end)
@@ -956,11 +1209,15 @@ HatchButton.MouseButton1Click:Connect(function()
     EggPopup.Visible =
         not EggPopup.Visible
 
+    if EggPopup.Visible then
+        StatsPopup.Visible = false
+    end
+
 end)
 
 
 --// =========================================================
---// PROFILE / REPLICA SEARCH
+--// QUEST TABLE SEARCH
 --// =========================================================
 
 local function looksLikeQuestList(tbl)
@@ -969,7 +1226,8 @@ local function looksLikeQuestList(tbl)
         return false
     end
 
-    local amount = 0
+    local found = 0
+
 
     for _, value in pairs(tbl) do
 
@@ -977,13 +1235,14 @@ local function looksLikeQuestList(tbl)
             and tonumber(value.Id)
             and value.endAmount ~= nil then
 
-            amount += 1
+            found += 1
 
         end
 
     end
 
-    return amount > 0
+
+    return found > 0
 end
 
 
@@ -997,18 +1256,25 @@ local function findQuestList(
         return nil
     end
 
+
     depth = depth or 0
     visited = visited or {}
 
-    if depth > 6 or visited[tbl] then
+
+    if depth > 6
+        or visited[tbl] then
+
         return nil
     end
 
+
     visited[tbl] = true
+
 
     if looksLikeQuestList(tbl) then
         return tbl
     end
+
 
     for _, value in pairs(tbl) do
 
@@ -1029,9 +1295,14 @@ local function findQuestList(
 
     end
 
+
     return nil
 end
 
+
+--// =========================================================
+--// STAT SEARCH
+--// =========================================================
 
 local function findStat(
     tbl,
@@ -1044,25 +1315,30 @@ local function findStat(
         return nil
     end
 
+
     depth = depth or 0
     visited = visited or {}
 
-    if depth > 7 or visited[tbl] then
+
+    if depth > 8
+        or visited[tbl] then
+
         return nil
     end
+
 
     visited[tbl] = true
 
 
     if tbl[statName] ~= nil then
 
-        local number =
+        local value =
             tonumber(
                 tbl[statName]
             )
 
-        if number then
-            return number
+        if value ~= nil then
+            return value
         end
 
     end
@@ -1093,8 +1369,12 @@ local function findStat(
 end
 
 
-local QuestReplica
-local CachedQuestList
+--// =========================================================
+--// QUEST REPLICA
+--// =========================================================
+
+local QuestReplica = nil
+local CachedQuestList = nil
 
 local REPLICA_SEARCH_MAX = 5000
 local REPLICA_BATCH_SIZE = 100
@@ -1111,10 +1391,13 @@ local function getReplica(id)
 
         end)
 
+
     if success then
         return replica
     end
 
+
+    return nil
 end
 
 
@@ -1123,7 +1406,25 @@ local function searchReplicaBatch()
     if QuestReplica
         and QuestReplica.Data then
 
-        return QuestReplica
+        if CachedQuestList
+            and looksLikeQuestList(
+                CachedQuestList
+            ) then
+
+            return QuestReplica
+        end
+
+
+        CachedQuestList =
+            findQuestList(
+                QuestReplica.Data
+            )
+
+
+        if CachedQuestList then
+            return QuestReplica
+        end
+
     end
 
 
@@ -1131,6 +1432,7 @@ local function searchReplicaBatch()
 
         local id =
             ReplicaSearchCursor
+
 
         ReplicaSearchCursor += 1
 
@@ -1164,6 +1466,13 @@ local function searchReplicaBatch()
                 CachedQuestList =
                     quests
 
+
+                print(
+                    "[Auto Farm] Quest/Profile replica:",
+                    id
+                )
+
+
                 return replica
 
             end
@@ -1172,32 +1481,41 @@ local function searchReplicaBatch()
 
     end
 
+
+    return nil
 end
 
 
-local function ensureReplica()
+local function ensureQuestReplica(fullSearch)
 
     if QuestReplica
         and QuestReplica.Data then
 
         return QuestReplica
-
     end
 
 
-    for _ = 1, 50 do
+    local batches =
+        fullSearch and 50 or 2
 
-        local replica =
+
+    for _ = 1, batches do
+
+        local result =
             searchReplicaBatch()
 
-        if replica then
-            return replica
+
+        if result then
+            return result
         end
+
 
         task.wait(0.02)
 
     end
 
+
+    return nil
 end
 
 
@@ -1212,7 +1530,6 @@ local function getCurrentQuests()
             ) then
 
             return CachedQuestList
-
         end
 
 
@@ -1221,18 +1538,24 @@ local function getCurrentQuests()
                 QuestReplica.Data
             )
 
-        return CachedQuestList
+
+        if CachedQuestList then
+            return CachedQuestList
+        end
 
     end
 
 
     searchReplicaBatch()
 
+
     return CachedQuestList
 end
 
 
-local function getCurrentStat(name)
+local function getCurrentStat(
+    statName
+)
 
     if not QuestReplica
         or not QuestReplica.Data then
@@ -1240,75 +1563,574 @@ local function getCurrentStat(name)
         return 0
     end
 
+
     return
         findStat(
             QuestReplica.Data,
-            name
+            statName
         )
         or 0
-
 end
 
 
 --// =========================================================
---// AUTO BOOST ACTIVE DETECTION
+--// AUTO BOOST SYSTEM V2
 --// =========================================================
 
-local function normalize(text)
+local function normalize(value)
 
     return string.lower(
-        tostring(text)
+        tostring(value)
     ):gsub(
         "[^%w]",
         ""
     )
+end
+
+
+local BoostLookup = {}
+
+for _, boostName in ipairs(
+    AutoBoostItems
+) do
+
+    BoostLookup[
+        normalize(boostName)
+    ] = true
 
 end
 
 
-local ActiveIndicators = {
-    "activeboost",
-    "activepotion",
-    "boosttimer",
-    "boosttime",
-    "potiontimer",
-    "potiontime",
-    "fruitboost",
-    "remaining",
-    "duration",
-    "timeleft",
-    "expires",
-    "active"
-}
+--// =========================================================
+--// FIND BOOST REPLICA
+--// =========================================================
+
+local BoostReplica = nil
+
+local BoostReplicaCursor = 1
+local BoostReplicaSearchFinished = false
 
 
-local function hasActiveIndicator(path)
+local function containsBoostData(
+    tbl,
+    depth,
+    visited
+)
 
-    local normalized =
-        normalize(path)
+    if type(tbl) ~= "table" then
+        return false
+    end
 
-    for _, indicator in ipairs(
-        ActiveIndicators
-    ) do
 
-        if string.find(
-            normalized,
-            indicator,
-            1,
-            true
-        ) then
+    depth = depth or 0
+    visited = visited or {}
+
+
+    if depth > 8
+        or visited[tbl] then
+
+        return false
+    end
+
+
+    visited[tbl] = true
+
+
+    for key, value in pairs(tbl) do
+
+        if BoostLookup[
+            normalize(key)
+        ] then
 
             return true
+        end
+
+
+        if type(value) == "string"
+            and BoostLookup[
+                normalize(value)
+            ] then
+
+            return true
+        end
+
+
+        if type(value) == "table" then
+
+            if containsBoostData(
+                value,
+                depth + 1,
+                visited
+            ) then
+
+                return true
+            end
 
         end
 
     end
 
+
     return false
 end
 
 
-local function scalarActive(value)
+local function searchBoostReplicaBatch()
+
+    if BoostReplica
+        and BoostReplica.Data then
+
+        return BoostReplica
+    end
+
+
+    if BoostReplicaSearchFinished then
+        return nil
+    end
+
+
+    for _ = 1, 100 do
+
+        local id =
+            BoostReplicaCursor
+
+
+        BoostReplicaCursor += 1
+
+
+        if id > 5000 then
+
+            BoostReplicaSearchFinished =
+                true
+
+            break
+        end
+
+
+        local success, replica =
+            pcall(function()
+
+                return ReplicaController
+                    .GetReplicaById(id)
+
+            end)
+
+
+        if success
+            and replica
+            and replica.Data
+            and containsBoostData(
+                replica.Data,
+                0,
+                {}
+            ) then
+
+            BoostReplica =
+                replica
+
+
+            print(
+                "[Auto Boosts] Boost replica found:",
+                id
+            )
+
+
+            return replica
+
+        end
+
+    end
+
+
+    return nil
+end
+
+
+local function ensureBoostReplica()
+
+    if BoostReplica
+        and BoostReplica.Data then
+
+        return BoostReplica
+    end
+
+
+    for _ = 1, 50 do
+
+        local result =
+            searchBoostReplicaBatch()
+
+
+        if result then
+            return result
+        end
+
+
+        if BoostReplicaSearchFinished then
+            break
+        end
+
+
+        task.wait(0.02)
+
+    end
+
+
+    -- Fallback
+    if QuestReplica
+        and QuestReplica.Data then
+
+        return QuestReplica
+    end
+
+
+    return nil
+end
+
+
+--// =========================================================
+--// INVENTORY / ACTIVE PATH WORDS
+--// =========================================================
+
+local InventoryWords = {
+    "inventory",
+    "iteminventory",
+    "items",
+    "potions",
+    "fruits",
+    "consumables",
+    "storage",
+    "owned"
+}
+
+
+local ActiveWords = {
+    "activeboost",
+    "activeboosts",
+
+    "activepotion",
+    "activepotions",
+
+    "boosttimer",
+    "boosttimers",
+
+    "potiontimer",
+    "potiontimers",
+
+    "fruitboost",
+    "fruitboosts",
+
+    "timeleft",
+    "remaining",
+    "duration",
+    "expires",
+    "expiry",
+    "buffs"
+}
+
+
+local function pathContains(
+    path,
+    words
+)
+
+    local clean =
+        normalize(path)
+
+
+    for _, word in ipairs(words) do
+
+        if string.find(
+            clean,
+            normalize(word),
+            1,
+            true
+        ) then
+
+            return true
+        end
+
+    end
+
+
+    return false
+end
+
+
+--// =========================================================
+--// FIND OWNED AMOUNT
+--// =========================================================
+
+local AmountFields = {
+    "Amount",
+    "amount",
+
+    "Count",
+    "count",
+
+    "Quantity",
+    "quantity",
+
+    "Uses",
+    "uses",
+
+    "Owned",
+    "owned"
+}
+
+
+local function findOwnedAmount(
+    tbl,
+    boostName
+)
+
+    if type(tbl) ~= "table" then
+        return nil
+    end
+
+
+    local target =
+        normalize(boostName)
+
+
+    local bestValue = nil
+    local bestScore = -999
+
+
+    local function scan(
+        current,
+        path,
+        depth,
+        visited
+    )
+
+        if type(current) ~= "table"
+            or depth > 9
+            or visited[current] then
+
+            return
+        end
+
+
+        visited[current] = true
+
+
+        for key, value in pairs(current) do
+
+            local currentPath =
+                path ..
+                "." ..
+                tostring(key)
+
+
+            local keyNormalized =
+                normalize(key)
+
+
+            -- Example:
+            -- Inventory.DiamondApple = 6
+            if keyNormalized == target then
+
+                local number =
+                    tonumber(value)
+
+
+                if number ~= nil then
+
+                    local score = 0
+
+
+                    if pathContains(
+                        currentPath,
+                        InventoryWords
+                    ) then
+
+                        score += 25
+                    end
+
+
+                    if pathContains(
+                        currentPath,
+                        ActiveWords
+                    ) then
+
+                        score -= 50
+                    end
+
+
+                    if score > bestScore then
+
+                        bestScore = score
+                        bestValue = number
+
+                    end
+
+                end
+
+
+                -- Example:
+                -- DiamondApple.Amount = 6
+                if type(value) == "table" then
+
+                    for _, field in ipairs(
+                        AmountFields
+                    ) do
+
+                        local amount =
+                            tonumber(
+                                value[field]
+                            )
+
+
+                        if amount ~= nil then
+
+                            local score = 30
+
+
+                            if pathContains(
+                                currentPath,
+                                ActiveWords
+                            ) then
+
+                                score -= 50
+                            end
+
+
+                            if score > bestScore then
+
+                                bestScore = score
+                                bestValue = amount
+
+                            end
+
+                        end
+
+                    end
+
+                end
+
+            end
+
+
+            if type(value) == "table" then
+
+                -- Example:
+                --
+                -- {
+                --     Name = "DiamondApple",
+                --     Amount = 5
+                -- }
+
+                local label =
+                    value.Name
+                    or value.name
+                    or value.Item
+                    or value.item
+                    or value.Id
+                    or value.id
+
+
+                if label
+                    and normalize(label) == target then
+
+                    for _, field in ipairs(
+                        AmountFields
+                    ) do
+
+                        local amount =
+                            tonumber(
+                                value[field]
+                            )
+
+
+                        if amount ~= nil then
+
+                            local score = 35
+
+
+                            if pathContains(
+                                currentPath,
+                                ActiveWords
+                            ) then
+
+                                score -= 50
+                            end
+
+
+                            if score > bestScore then
+
+                                bestScore = score
+                                bestValue = amount
+
+                            end
+
+                        end
+
+                    end
+
+                end
+
+
+                scan(
+                    value,
+                    currentPath,
+                    depth + 1,
+                    visited
+                )
+
+            end
+
+        end
+
+    end
+
+
+    scan(
+        tbl,
+        "Data",
+        0,
+        {}
+    )
+
+
+    if bestScore >= 10 then
+        return bestValue
+    end
+
+
+    return nil
+end
+
+
+--// =========================================================
+--// ACTIVE BOOST DETECTION
+--// =========================================================
+
+local ActiveFields = {
+    "Active",
+    "active",
+
+    "Time",
+    "time",
+
+    "TimeLeft",
+    "timeLeft",
+    "timeleft",
+
+    "Remaining",
+    "remaining",
+
+    "Duration",
+    "duration",
+
+    "Expires",
+    "expires"
+}
+
+
+local function valueIsActive(
+    value
+)
 
     if type(value) == "boolean" then
         return value
@@ -1325,16 +2147,26 @@ local function scalarActive(value)
         local lower =
             string.lower(value)
 
+
         if lower == "true"
             or lower == "active" then
 
             return true
         end
 
+
+        if lower == "false"
+            or lower == "inactive" then
+
+            return false
+        end
+
+
         local number =
             tonumber(value)
 
-        if number then
+
+        if number ~= nil then
             return number > 0
         end
 
@@ -1345,12 +2177,9 @@ local function scalarActive(value)
 end
 
 
-local function scanBoostState(
+local function findActiveBoost(
     tbl,
-    boostName,
-    path,
-    depth,
-    visited
+    boostName
 )
 
     if type(tbl) ~= "table" then
@@ -1358,113 +2187,78 @@ local function scanBoostState(
     end
 
 
-    depth = depth or 0
-    visited = visited or {}
-
-
-    if depth > 9
-        or visited[tbl] then
-
-        return nil
-    end
-
-
-    visited[tbl] = true
-
-
     local target =
         normalize(boostName)
 
 
-    for key, value in pairs(tbl) do
+    local function scan(
+        current,
+        path,
+        depth,
+        visited
+    )
 
-        local currentPath =
-            path ..
-            "." ..
-            tostring(key)
+        if type(current) ~= "table"
+            or depth > 9
+            or visited[current] then
 
-
-        local keyNorm =
-            normalize(key)
-
-
-        local pathNorm =
-            normalize(currentPath)
-
-
-        local nameMatch =
-            keyNorm == target
-            or string.find(
-                keyNorm,
-                target,
-                1,
-                true
-            )
-            or string.find(
-                pathNorm,
-                target,
-                1,
-                true
-            )
+            return nil
+        end
 
 
-        if nameMatch
-            and hasActiveIndicator(
-                currentPath
-            ) then
+        visited[current] = true
 
 
-            if type(value) ~= "table" then
+        for key, value in pairs(current) do
 
-                local state =
-                    scalarActive(value)
-
-                if state ~= nil then
-                    return state
-                end
+            local currentPath =
+                path ..
+                "." ..
+                tostring(key)
 
 
-            else
-
-                -- Common timer/active fields
-                for subKey, subValue in pairs(value) do
-
-                    local subNorm =
-                        normalize(subKey)
+            local keyNormalized =
+                normalize(key)
 
 
-                    if string.find(
-                        subNorm,
-                        "active",
-                        1,
-                        true
-                    )
-                    or string.find(
-                        subNorm,
-                        "time",
-                        1,
-                        true
-                    )
-                    or string.find(
-                        subNorm,
-                        "duration",
-                        1,
-                        true
-                    )
-                    or string.find(
-                        subNorm,
-                        "remaining",
-                        1,
-                        true
-                    ) then
+            if keyNormalized == target
+                and pathContains(
+                    currentPath,
+                    ActiveWords
+                ) then
 
-                        local state =
-                            scalarActive(
-                                subValue
-                            )
 
-                        if state ~= nil then
-                            return state
+                if type(value) ~= "table" then
+
+                    local state =
+                        valueIsActive(
+                            value
+                        )
+
+
+                    if state ~= nil then
+                        return state
+                    end
+
+
+                else
+
+                    for _, field in ipairs(
+                        ActiveFields
+                    ) do
+
+                        if value[field] ~= nil then
+
+                            local state =
+                                valueIsActive(
+                                    value[field]
+                                )
+
+
+                            if state ~= nil then
+                                return state
+                            end
+
                         end
 
                     end
@@ -1473,25 +2267,203 @@ local function scanBoostState(
 
             end
 
+
+            if type(value) == "table" then
+
+                local label =
+                    value.Name
+                    or value.name
+                    or value.Item
+                    or value.item
+                    or value.Boost
+                    or value.boost
+
+
+                if label
+                    and normalize(label) == target then
+
+                    for _, field in ipairs(
+                        ActiveFields
+                    ) do
+
+                        if value[field] ~= nil then
+
+                            local state =
+                                valueIsActive(
+                                    value[field]
+                                )
+
+
+                            if state ~= nil then
+                                return state
+                            end
+
+                        end
+
+                    end
+
+                end
+
+
+                local result =
+                    scan(
+                        value,
+                        currentPath,
+                        depth + 1,
+                        visited
+                    )
+
+
+                if result ~= nil then
+                    return result
+                end
+
+            end
+
         end
 
 
-        if type(value) == "table" then
-
-            local result =
-                scanBoostState(
-                    value,
-                    boostName,
-                    currentPath,
-                    depth + 1,
-                    visited
-                )
+        return nil
+    end
 
 
-            if result ~= nil then
-                return result
-            end
+    return scan(
+        tbl,
+        "Data",
+        0,
+        {}
+    )
+end
 
+
+--// =========================================================
+--// GET BOOST INFO
+--// =========================================================
+
+local function getBoostInfo(
+    boostName
+)
+
+    local replica =
+        ensureBoostReplica()
+
+
+    if not replica
+        or not replica.Data then
+
+        return nil, nil
+    end
+
+
+    local owned =
+        findOwnedAmount(
+            replica.Data,
+            boostName
+        )
+
+
+    local active =
+        findActiveBoost(
+            replica.Data,
+            boostName
+        )
+
+
+    return owned, active
+end
+
+
+--// =========================================================
+--// LOCAL AUTO BOOST STATE
+--// =========================================================
+
+local BoostUseState =
+    _G.__AUTO_FARM_BOOST_STATE_V2
+
+
+if not BoostUseState then
+
+    BoostUseState = {}
+
+    _G.__AUTO_FARM_BOOST_STATE_V2 =
+        BoostUseState
+
+end
+
+
+local function getLocalBoostState(
+    boostName
+)
+
+    if not BoostUseState[
+        boostName
+    ] then
+
+        BoostUseState[
+            boostName
+        ] = {
+            RetryAt = 0,
+            AssumedActiveUntil = 0
+        }
+
+    end
+
+
+    return BoostUseState[
+        boostName
+    ]
+end
+
+
+--// =========================================================
+--// SESSION STATS
+--// =========================================================
+
+local SessionBaseline =
+    _G.__AUTO_FARM_SESSION_BASELINE
+
+
+if not SessionBaseline then
+
+    SessionBaseline = {
+        Initialized = false,
+
+        Eggs = 0,
+        Secrets = 0,
+        Divines = 0
+    }
+
+
+    _G.__AUTO_FARM_SESSION_BASELINE =
+        SessionBaseline
+
+end
+
+
+local function getStatFromCandidates(
+    candidates
+)
+
+    if not QuestReplica
+        or not QuestReplica.Data then
+
+        return nil
+    end
+
+
+    for _, statName in ipairs(
+        candidates
+    ) do
+
+        local value =
+            findStat(
+                QuestReplica.Data,
+                statName
+            )
+
+
+        if value ~= nil then
+            return value
         end
 
     end
@@ -1501,346 +2473,222 @@ local function scanBoostState(
 end
 
 
-local function getBoostState(boostName)
+local function getRawHatchStats()
 
-    if not QuestReplica
-        or not QuestReplica.Data then
+    local eggs =
+        getStatFromCandidates({
+            "Eggs",
+            "EggsHatched",
+            "EggsOpened",
+            "TotalEggsHatched",
+            "TotalEggsOpened",
+            "TotalEggs"
+        })
 
-        return nil
+
+    local secrets =
+        getStatFromCandidates({
+            "SecretHatched",
+            "SecretsHatched",
+            "SecretPetsHatched",
+            "SecretHatches",
+            "Secrets"
+        })
+
+
+    local divines =
+        getStatFromCandidates({
+            "DivineHatched",
+            "DivinesHatched",
+            "DivinePetsHatched",
+            "DivineHatches",
+            "Divines",
+            "TotalDivinesHatched"
+        })
+
+
+    return eggs, secrets, divines
+end
+
+
+local function formatNumber(number)
+
+    if number == nil then
+        return "?"
     end
 
 
-    return scanBoostState(
-        QuestReplica.Data,
-        boostName,
-        "Data",
-        0,
-        {}
-    )
-
-end
+    number =
+        math.floor(number)
 
 
---// =========================================================
---// LOCAL BOOST FALLBACK
---// =========================================================
-
-local LocalBoostUntil =
-    _G.__AUTO_FARM_BOOST_FALLBACK
+    local formatted =
+        tostring(number)
 
 
-if not LocalBoostUntil then
+    while true do
 
-    LocalBoostUntil = {}
-
-    _G.__AUTO_FARM_BOOST_FALLBACK =
-        LocalBoostUntil
-
-end
-
-
-local function recentlyUsed(boostName)
-
-    local expiry =
-        LocalBoostUntil[
-            boostName
-        ]
-
-    return expiry
-        and os.clock() < expiry
-
-end
-
-
-local function markBoostUsed(boostName)
-
-    LocalBoostUntil[boostName] =
-        os.clock()
-        + UNKNOWN_BOOST_RETRY
-
-end
-
-
---// =========================================================
---// AUTO BOOST WORKER
---// =========================================================
-
-task.spawn(function()
-
-    while alive do
-
-        if not Settings.AutoBoosts then
-
-            task.wait(IDLE_DELAY)
-            continue
-
-        end
-
-
-        ensureReplica()
-
-
-        for _, boostName in ipairs(
-            AutoBoostItems
-        ) do
-
-            if not alive
-                or not Settings.AutoBoosts then
-
-                break
-            end
-
-
-            local active =
-                getBoostState(
-                    boostName
-                )
-
-
-            -- Explicitly active:
-            -- do nothing.
-            if active == true then
-
-                -- already running
-
-
-            -- Explicitly inactive:
-            -- use one.
-            elseif active == false then
-
-                pcall(function()
-
-                    Events
-                        :WaitForChild("UsePotion")
-                        :FireServer(
-                            boostName,
-                            1
-                        )
-
-                end)
-
-
-                markBoostUsed(
-                    boostName
-                )
-
-
-            -- Unknown:
-            -- use only if local fallback
-            -- says we haven't recently tried it.
-            elseif not recentlyUsed(
-                boostName
-            ) then
-
-                pcall(function()
-
-                    Events
-                        :WaitForChild("UsePotion")
-                        :FireServer(
-                            boostName,
-                            1
-                        )
-
-                end)
-
-
-                markBoostUsed(
-                    boostName
-                )
-
-            end
-
-
-            task.wait(
-                AUTO_BOOST_ITEM_DELAY
+        local newFormatted, replacements =
+            string.gsub(
+                formatted,
+                "^(-?%d+)(%d%d%d)",
+                "%1,%2"
             )
 
+
+        formatted =
+            newFormatted
+
+
+        if replacements == 0 then
+            break
         end
 
+    end
 
-        task.wait(
-            AUTO_BOOST_SCAN_DELAY
+
+    return formatted
+end
+
+
+local function initializeSessionStats()
+
+    if SessionBaseline.Initialized then
+        return true
+    end
+
+
+    local replica =
+        ensureQuestReplica(true)
+
+
+    if not replica then
+        return false
+    end
+
+
+    local eggs,
+        secrets,
+        divines =
+        getRawHatchStats()
+
+
+    if eggs == nil
+        and secrets == nil
+        and divines == nil then
+
+        return false
+    end
+
+
+    SessionBaseline.Eggs =
+        eggs or 0
+
+    SessionBaseline.Secrets =
+        secrets or 0
+
+    SessionBaseline.Divines =
+        divines or 0
+
+    SessionBaseline.Initialized =
+        true
+
+
+    return true
+end
+
+
+local function updateStats()
+
+    StatsUpdated.Text =
+        "Updating..."
+
+
+    if not initializeSessionStats() then
+
+        StatsUpdated.Text =
+            "Waiting for stats..."
+
+        return
+    end
+
+
+    local currentEggs,
+        currentSecrets,
+        currentDivines =
+        getRawHatchStats()
+
+
+    local eggs =
+        math.max(
+            0,
+            (currentEggs or SessionBaseline.Eggs)
+            - SessionBaseline.Eggs
         )
 
-    end
 
-end)
-
-
---// =========================================================
---// NORMAL AURAS
---// =========================================================
-
-task.spawn(function()
-
-    while alive do
-
-        if not Settings.Auras then
-
-            task.wait(IDLE_DELAY)
-            continue
-
-        end
+    local secrets =
+        math.max(
+            0,
+            (currentSecrets or SessionBaseline.Secrets)
+            - SessionBaseline.Secrets
+        )
 
 
-        for _, aura in ipairs(
-            AuraPriority
-        ) do
-
-            if not alive
-                or not Settings.Auras then
-
-                break
-            end
+    local divines =
+        math.max(
+            0,
+            (currentDivines or SessionBaseline.Divines)
+            - SessionBaseline.Divines
+        )
 
 
-            pcall(function()
-
-                Functions
-                    :WaitForChild("AurasFunction")
-                    :InvokeServer(aura)
-
-            end)
+    EggsStat.Text =
+        "Eggs: +" ..
+        formatNumber(eggs)
 
 
-            task.wait(1)
-
-        end
-
-    end
-
-end)
+    SecretStat.Text =
+        "Secrets: +" ..
+        formatNumber(secrets)
 
 
---// =========================================================
---// MERCHANT
---// =========================================================
-
-task.spawn(function()
-
-    while alive do
-
-        if not Settings.Merchant then
-
-            task.wait(IDLE_DELAY)
-            continue
-
-        end
+    DivineStat.Text =
+        "Divines: +" ..
+        formatNumber(divines)
 
 
-        for _, merchantItem in ipairs(
-            MerchantItems
-        ) do
-
-            if not alive
-                or not Settings.Merchant then
-
-                break
-            end
+    StatsUpdated.Text =
+        "Session • updates every 60s"
+end
 
 
-            pcall(function()
+StatsButton.MouseButton1Click:Connect(function()
 
-                Functions
-                    :WaitForChild("MerchantPurchase")
-                    :InvokeServer(
-                        "Spawn",
-                        merchantItem.Name
-                    )
-
-            end)
+    StatsPopup.Visible =
+        not StatsPopup.Visible
 
 
-            task.wait(
-                MERCHANT_ITEM_DELAY
+    if StatsPopup.Visible then
+
+        EggPopup.Visible = false
+
+
+        task.spawn(function()
+
+            pcall(
+                updateStats
             )
-
-        end
-
-
-        task.wait(
-            MERCHANT_CYCLE_DELAY
-        )
-
-    end
-
-end)
-
-
---// =========================================================
---// NORMAL AUTO HATCH
---// =========================================================
-
-task.spawn(function()
-
-    while alive do
-
-        if not Settings.Hatch
-            or Settings.AutoQuests then
-
-            task.wait(IDLE_DELAY)
-            continue
-
-        end
-
-
-        pcall(function()
-
-            Functions
-                :WaitForChild("Hatch")
-                :InvokeServer(
-                    SelectedEgg,
-                    "Triple"
-                )
 
         end)
 
-
-        task.wait(
-            NORMAL_HATCH_DELAY
-        )
-
     end
 
 end)
 
 
 --// =========================================================
---// AUTO TAP
---// =========================================================
-
-task.spawn(function()
-
-    while alive do
-
-        if not Settings.AutoTap then
-
-            task.wait(IDLE_DELAY)
-            continue
-
-        end
-
-
-        pcall(function()
-
-            Events
-                :WaitForChild("Click")
-                :FireServer()
-
-        end)
-
-
-        task.wait(
-            AUTO_TAP_DELAY
-        )
-
-    end
-
-end)
-
-
---// =========================================================
---// QUEST SYSTEM
+--// QUEST STATE
 --// =========================================================
 
 local QuestState = {
@@ -1864,8 +2712,13 @@ local QuestState = {
 
 local function clearQuestState()
 
-    for key in pairs(QuestState) do
-        QuestState[key] = false
+    for key in pairs(
+        QuestState
+    ) do
+
+        QuestState[key] =
+            false
+
     end
 
 end
@@ -1945,7 +2798,8 @@ local function updateQuestState()
             questInfo.dataType
 
 
-        if dataType == "TimePlayed" then
+        if dataType ==
+            "TimePlayed" then
 
             continue
 
@@ -1959,7 +2813,8 @@ local function updateQuestState()
         elseif dataType ==
             "Eggs" then
 
-            QuestState.Eggs = true
+            QuestState.Eggs =
+                true
 
 
         elseif dataType ==
@@ -2028,11 +2883,468 @@ local function updateQuestState()
     end
 
 
-    -- 2+ aura quests needed
+    -- Requires 2+ unfinished aura quests
     QuestState.Auras =
         auraQuestCount >= 2
-
 end
+
+
+--// =========================================================
+--// INITIAL SESSION STATS
+--// =========================================================
+
+task.spawn(function()
+
+    task.wait(2)
+
+
+    if alive then
+
+        pcall(function()
+            initializeSessionStats()
+        end)
+
+    end
+
+end)
+
+
+--// =========================================================
+--// STATS UPDATE
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        task.wait(
+            STATS_UPDATE_DELAY
+        )
+
+
+        if not alive then
+            break
+        end
+
+
+        pcall(
+            updateStats
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// AUTO BOOSTS V2
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoBoosts then
+
+            task.wait(
+                IDLE_DELAY
+            )
+
+            continue
+
+        end
+
+
+        ensureBoostReplica()
+
+
+        for _, boostName in ipairs(
+            AutoBoostItems
+        ) do
+
+            if not alive
+                or not Settings.AutoBoosts then
+
+                break
+            end
+
+
+            local state =
+                getLocalBoostState(
+                    boostName
+                )
+
+
+            local now =
+                os.clock()
+
+
+            local owned,
+                active =
+                getBoostInfo(
+                    boostName
+                )
+
+
+            -- ================================================
+            -- DEFINITELY DON'T OWN IT
+            -- ================================================
+
+            if owned ~= nil
+                and owned <= 0 then
+
+                state.AssumedActiveUntil =
+                    0
+
+
+                state.RetryAt =
+                    now + 5
+
+
+            -- ================================================
+            -- ALREADY ACTIVE
+            -- ================================================
+
+            elseif active == true then
+
+                state.AssumedActiveUntil =
+                    0
+
+
+                state.RetryAt =
+                    0
+
+
+            -- ================================================
+            -- RECENTLY CONFIRMED AS USED
+            -- ================================================
+
+            elseif state.AssumedActiveUntil >
+                now then
+
+                -- Do nothing
+
+
+            -- ================================================
+            -- WAIT BEFORE RETRYING
+            -- ================================================
+
+            elseif state.RetryAt >
+                now then
+
+                -- Do nothing
+
+
+            -- ================================================
+            -- TRY TO USE ONE
+            -- ================================================
+
+            else
+
+                local beforeAmount =
+                    owned
+
+
+                pcall(function()
+
+                    Events
+                        :WaitForChild("UsePotion")
+                        :FireServer(
+                            boostName,
+                            1
+                        )
+
+                end)
+
+
+                -- Wait for inventory / boost data
+                -- to replicate back to client.
+                task.wait(0.35)
+
+
+                local afterAmount,
+                    afterActive =
+                    getBoostInfo(
+                        boostName
+                    )
+
+
+                -- ============================================
+                -- ACTIVE TIMER CONFIRMED
+                -- ============================================
+
+                if afterActive == true then
+
+                    print(
+                        "[Auto Boosts] USED:",
+                        boostName
+                    )
+
+
+                    state.RetryAt =
+                        0
+
+
+                    state.AssumedActiveUntil =
+                        0
+
+
+                -- ============================================
+                -- INVENTORY WENT DOWN
+                -- ============================================
+
+                elseif beforeAmount ~= nil
+                    and afterAmount ~= nil
+                    and afterAmount < beforeAmount then
+
+                    print(
+                        "[Auto Boosts] USED:",
+                        boostName,
+                        "|",
+                        beforeAmount,
+                        "->",
+                        afterAmount
+                    )
+
+
+                    state.RetryAt =
+                        0
+
+
+                    state.AssumedActiveUntil =
+                        os.clock()
+                        + ASSUMED_ACTIVE_TIME
+
+
+                -- ============================================
+                -- COULD NOT CONFIRM
+                -- ============================================
+
+                else
+
+                    -- IMPORTANT:
+                    -- Missing/rejected items are NOT
+                    -- locked out for 5 minutes.
+                    state.RetryAt =
+                        os.clock()
+                        + FAILED_BOOST_RETRY
+
+
+                    if beforeAmount ~= nil
+                        and beforeAmount <= 0 then
+
+                        print(
+                            "[Auto Boosts] DON'T OWN:",
+                            boostName
+                        )
+
+                    end
+
+                end
+
+            end
+
+
+            task.wait(
+                AUTO_BOOST_ITEM_DELAY
+            )
+
+        end
+
+
+        task.wait(
+            AUTO_BOOST_SCAN_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// NORMAL AURAS
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.Auras then
+
+            task.wait(
+                IDLE_DELAY
+            )
+
+            continue
+
+        end
+
+
+        for _, aura in ipairs(
+            AuraPriority
+        ) do
+
+            if not alive
+                or not Settings.Auras then
+
+                break
+            end
+
+
+            pcall(function()
+
+                Functions
+                    :WaitForChild("AurasFunction")
+                    :InvokeServer(
+                        aura
+                    )
+
+            end)
+
+
+            task.wait(1)
+
+        end
+
+    end
+
+end)
+
+
+--// =========================================================
+--// MERCHANT
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.Merchant then
+
+            task.wait(
+                IDLE_DELAY
+            )
+
+            continue
+
+        end
+
+
+        for _, merchantItem in ipairs(
+            MerchantItems
+        ) do
+
+            if not alive
+                or not Settings.Merchant then
+
+                break
+            end
+
+
+            pcall(function()
+
+                Functions
+                    :WaitForChild("MerchantPurchase")
+                    :InvokeServer(
+                        "Spawn",
+                        merchantItem.Name
+                    )
+
+            end)
+
+
+            task.wait(
+                MERCHANT_ITEM_DELAY
+            )
+
+        end
+
+
+        task.wait(
+            MERCHANT_CYCLE_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// NORMAL AUTO HATCH
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.Hatch
+            or Settings.AutoQuests then
+
+            task.wait(
+                IDLE_DELAY
+            )
+
+            continue
+
+        end
+
+
+        pcall(function()
+
+            Functions
+                :WaitForChild("Hatch")
+                :InvokeServer(
+                    SelectedEgg,
+                    "Triple"
+                )
+
+        end)
+
+
+        task.wait(
+            NORMAL_HATCH_DELAY
+        )
+
+    end
+
+end)
+
+
+--// =========================================================
+--// AUTO TAP
+--// =========================================================
+
+task.spawn(function()
+
+    while alive do
+
+        if not Settings.AutoTap then
+
+            task.wait(
+                IDLE_DELAY
+            )
+
+            continue
+
+        end
+
+
+        pcall(function()
+
+            Events
+                :WaitForChild("Click")
+                :FireServer()
+
+        end)
+
+
+        task.wait(
+            AUTO_TAP_DELAY
+        )
+
+    end
+
+end)
 
 
 --// =========================================================
@@ -2047,7 +3359,12 @@ task.spawn(function()
 
             clearQuestState()
 
-            task.wait(IDLE_DELAY)
+
+            task.wait(
+                IDLE_DELAY
+            )
+
+
             continue
 
         end
@@ -2068,10 +3385,10 @@ end)
 --// =========================================================
 --// QUEST HATCH
 --//
---// Secret  = Basic
---// Eternal = City
---// Eggs    = Magic
---// Nothing = Magic
+--// Secret  -> Basic
+--// Eternal -> City
+--// Eggs    -> Magic
+--// None    -> Magic
 --// =========================================================
 
 task.spawn(function()
@@ -2080,7 +3397,10 @@ task.spawn(function()
 
         if not Settings.AutoQuests then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2091,18 +3411,21 @@ task.spawn(function()
 
         if QuestState.SecretHatch then
 
-            egg = SECRET_EGG
+            egg =
+                SECRET_EGG
 
 
         elseif QuestState.EternalHatch then
 
-            egg = ETERNAL_EGG
+            egg =
+                ETERNAL_EGG
 
 
         else
 
-            -- Egg quest OR no hatch quest
-            egg = NORMAL_EGG
+            -- Eggs quest OR no hatch quest
+            egg =
+                NORMAL_EGG
 
         end
 
@@ -2139,7 +3462,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Boosts then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2194,7 +3520,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Potions then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2249,7 +3578,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Fruits then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2296,6 +3628,8 @@ end)
 --// =========================================================
 --// QUEST AURAS
 --//
+--// CONTINUOUS PRIORITY:
+--//
 --// Basic
 --// Epic
 --// Icy
@@ -2303,7 +3637,9 @@ end)
 --// Magma
 --// Galaxy
 --//
---// then restart from Basic
+--// then back to Basic
+--//
+--// Only runs with 2+ unfinished aura quests.
 --// =========================================================
 
 task.spawn(function()
@@ -2313,7 +3649,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Auras then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2369,7 +3708,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Crates then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2407,7 +3749,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Gold then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2444,7 +3789,10 @@ task.spawn(function()
         if not Settings.AutoQuests
             or not QuestState.Rainbow then
 
-            task.wait(IDLE_DELAY)
+            task.wait(
+                IDLE_DELAY
+            )
+
             continue
 
         end
@@ -2463,303 +3811,6 @@ task.spawn(function()
 
         task.wait(
             QUEST_CRAFT_DELAY
-        )
-
-    end
-
-end)
-
-
---// =========================================================
---// SESSION STATS POPUP
---// =========================================================
-
-local StatsPopup =
-    Instance.new("Frame")
-
-StatsPopup.Size =
-    UDim2.new(0,210,0,165)
-
-StatsPopup.Position =
-    UDim2.new(1,10,0,0)
-
-StatsPopup.BackgroundColor3 =
-    Color3.fromRGB(25,25,25)
-
-StatsPopup.BorderSizePixel = 0
-StatsPopup.Visible = false
-StatsPopup.Parent = Main
-
-
-local StatsTitle =
-    Instance.new("TextLabel")
-
-StatsTitle.Size =
-    UDim2.new(1,-20,0,32)
-
-StatsTitle.Position =
-    UDim2.new(0,10,0,5)
-
-StatsTitle.BackgroundTransparency = 1
-
-StatsTitle.Text =
-    "Session Hatch Stats"
-
-StatsTitle.TextColor3 =
-    Color3.fromRGB(255,255,255)
-
-StatsTitle.Font =
-    Enum.Font.GothamBold
-
-StatsTitle.Parent =
-    StatsPopup
-
-
-local EggsStat =
-    Instance.new("TextLabel")
-
-EggsStat.Size =
-    UDim2.new(1,-20,0,25)
-
-EggsStat.Position =
-    UDim2.new(0,10,0,42)
-
-EggsStat.BackgroundTransparency = 1
-EggsStat.Text = "Eggs: Loading..."
-EggsStat.TextColor3 = Color3.new(1,1,1)
-EggsStat.Parent = StatsPopup
-
-
-local SecretStat =
-    EggsStat:Clone()
-
-SecretStat.Position =
-    UDim2.new(0,10,0,70)
-
-SecretStat.Text =
-    "Secrets: Loading..."
-
-SecretStat.Parent =
-    StatsPopup
-
-
-local DivineStat =
-    EggsStat:Clone()
-
-DivineStat.Position =
-    UDim2.new(0,10,0,98)
-
-DivineStat.Text =
-    "Divines: Loading..."
-
-DivineStat.Parent =
-    StatsPopup
-
-
-local StatsUpdated =
-    EggsStat:Clone()
-
-StatsUpdated.Position =
-    UDim2.new(0,10,0,130)
-
-StatsUpdated.Text =
-    "Updates every 60 sec"
-
-StatsUpdated.TextSize = 11
-
-StatsUpdated.Parent =
-    StatsPopup
-
-
-local SessionBaseline =
-    _G.__AUTO_FARM_SESSION_BASELINE
-
-
-if not SessionBaseline then
-
-    SessionBaseline = {
-        Initialized = false,
-        Eggs = 0,
-        Secrets = 0,
-        Divines = 0
-    }
-
-
-    _G.__AUTO_FARM_SESSION_BASELINE =
-        SessionBaseline
-
-end
-
-
-local function statCandidates(list)
-
-    for _, name in ipairs(list) do
-
-        local value =
-            QuestReplica
-            and QuestReplica.Data
-            and findStat(
-                QuestReplica.Data,
-                name
-            )
-
-        if value ~= nil then
-            return value
-        end
-
-    end
-
-end
-
-
-local function rawStats()
-
-    return
-
-        statCandidates({
-            "Eggs",
-            "EggsHatched",
-            "EggsOpened",
-            "TotalEggsHatched"
-        }),
-
-        statCandidates({
-            "SecretHatched",
-            "SecretsHatched",
-            "Secrets"
-        }),
-
-        statCandidates({
-            "DivineHatched",
-            "DivinesHatched",
-            "Divines"
-        })
-
-end
-
-
-local function initializeStats()
-
-    if SessionBaseline.Initialized then
-        return
-    end
-
-
-    ensureReplica()
-
-
-    local eggs, secrets, divines =
-        rawStats()
-
-
-    SessionBaseline.Eggs =
-        eggs or 0
-
-    SessionBaseline.Secrets =
-        secrets or 0
-
-    SessionBaseline.Divines =
-        divines or 0
-
-    SessionBaseline.Initialized =
-        true
-
-end
-
-
-local function updateStats()
-
-    initializeStats()
-
-
-    local eggs, secrets, divines =
-        rawStats()
-
-
-    EggsStat.Text =
-        "Eggs: +" ..
-        tostring(
-            math.max(
-                0,
-                (eggs or SessionBaseline.Eggs)
-                - SessionBaseline.Eggs
-            )
-        )
-
-
-    SecretStat.Text =
-        "Secrets: +" ..
-        tostring(
-            math.max(
-                0,
-                (secrets or SessionBaseline.Secrets)
-                - SessionBaseline.Secrets
-            )
-        )
-
-
-    DivineStat.Text =
-        "Divines: +" ..
-        tostring(
-            math.max(
-                0,
-                (divines or SessionBaseline.Divines)
-                - SessionBaseline.Divines
-            )
-        )
-
-
-    StatsUpdated.Text =
-        "Session • updates every 60s"
-
-end
-
-
-StatsButton.MouseButton1Click:Connect(function()
-
-    StatsPopup.Visible =
-        not StatsPopup.Visible
-
-
-    if StatsPopup.Visible then
-
-        EggPopup.Visible = false
-
-
-        task.spawn(function()
-
-            pcall(
-                updateStats
-            )
-
-        end)
-
-    end
-
-end)
-
-
-task.spawn(function()
-
-    task.wait(2)
-
-    pcall(
-        initializeStats
-    )
-
-
-    while alive do
-
-        task.wait(
-            STATS_UPDATE_DELAY
-        )
-
-        if not alive then
-            break
-        end
-
-        pcall(
-            updateStats
         )
 
     end
