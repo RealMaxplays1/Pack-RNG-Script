@@ -166,7 +166,7 @@ local AuraPriority = {
 
 
 --// =========================================================
---// QUEST BOOST ITEMS
+--// QUEST ITEMS
 --// =========================================================
 
 local BoostItems = {
@@ -199,30 +199,30 @@ local PotionIndex = 1
 
 
 --// =========================================================
---// AUTO BOOSTS - ALL 31
+--// AUTO BOOSTS - ALL ITEMS
 --// =========================================================
 
 local AutoBoostItems = {
 
-    -- APPLE
+    -- APPLES
     "Apple",
     "GoldenApple",
     "DiamondApple",
     "GalaxyApple",
 
-    -- CARROT
+    -- CARROTS
     "Carrot",
     "GoldenCarrot",
     "DiamondCarrot",
     "GalaxyCarrot",
 
-    -- GRAPE
+    -- GRAPES
     "Grape",
     "GoldenGrape",
     "DiamondGrape",
     "GalaxyGrape",
 
-    -- STRAWBERRY
+    -- STRAWBERRIES
     "Strawberry",
     "GoldenStrawberry",
     "DiamondStrawberry",
@@ -291,8 +291,6 @@ end
 --// =========================================================
 
 local NORMAL_HATCH_DELAY = 0.10
-
--- ~50 taps/sec
 local AUTO_TAP_DELAY = 0.02
 
 local QUEST_HATCH_DELAY = 0.15
@@ -310,17 +308,7 @@ local MERCHANT_CYCLE_DELAY = 0.25
 local AUTO_BOOST_SCAN_DELAY = 2
 local AUTO_BOOST_ITEM_DELAY = 0.10
 
--- If a boost use cannot be confirmed,
--- try again relatively soon.
-local FAILED_BOOST_RETRY = 10
-
--- If inventory confirms we used one but the
--- active timer cannot be found, assume it is
--- active for 5 minutes.
-local ASSUMED_ACTIVE_TIME = 300
-
 local STATS_UPDATE_DELAY = 60
-
 local IDLE_DELAY = 1
 
 
@@ -408,7 +396,6 @@ Title.Position =
     UDim2.new(0, 10, 0, 0)
 
 Title.BackgroundTransparency = 1
-
 Title.Text = "Auto Farm"
 
 Title.TextColor3 =
@@ -416,10 +403,7 @@ Title.TextColor3 =
 
 Title.TextSize = 20
 Title.Font = Enum.Font.GothamBold
-
-Title.TextXAlignment =
-    Enum.TextXAlignment.Left
-
+Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = TitleBar
 
 
@@ -456,12 +440,11 @@ local StatsButtonCorner =
 StatsButtonCorner.CornerRadius =
     UDim.new(0, 6)
 
-StatsButtonCorner.Parent =
-    StatsButton
+StatsButtonCorner.Parent = StatsButton
 
 
 --// =========================================================
---// CLOSE
+--// CLOSE BUTTON
 --// =========================================================
 
 local Close =
@@ -549,10 +532,7 @@ StatsTitle.TextColor3 =
 
 StatsTitle.TextSize = 17
 StatsTitle.Font = Enum.Font.GothamBold
-
-StatsTitle.TextXAlignment =
-    Enum.TextXAlignment.Left
-
+StatsTitle.TextXAlignment = Enum.TextXAlignment.Left
 StatsTitle.Parent = StatsPopup
 
 
@@ -573,10 +553,7 @@ EggsStat.TextColor3 =
 
 EggsStat.TextSize = 15
 EggsStat.Font = Enum.Font.Gotham
-
-EggsStat.TextXAlignment =
-    Enum.TextXAlignment.Left
-
+EggsStat.TextXAlignment = Enum.TextXAlignment.Left
 EggsStat.Parent = StatsPopup
 
 
@@ -597,10 +574,7 @@ SecretStat.TextColor3 =
 
 SecretStat.TextSize = 15
 SecretStat.Font = Enum.Font.Gotham
-
-SecretStat.TextXAlignment =
-    Enum.TextXAlignment.Left
-
+SecretStat.TextXAlignment = Enum.TextXAlignment.Left
 SecretStat.Parent = StatsPopup
 
 
@@ -621,10 +595,7 @@ DivineStat.TextColor3 =
 
 DivineStat.TextSize = 15
 DivineStat.Font = Enum.Font.Gotham
-
-DivineStat.TextXAlignment =
-    Enum.TextXAlignment.Left
-
+DivineStat.TextXAlignment = Enum.TextXAlignment.Left
 DivineStat.Parent = StatsPopup
 
 
@@ -647,10 +618,7 @@ StatsUpdated.TextColor3 =
 
 StatsUpdated.TextSize = 11
 StatsUpdated.Font = Enum.Font.Gotham
-
-StatsUpdated.TextXAlignment =
-    Enum.TextXAlignment.Left
-
+StatsUpdated.TextXAlignment = Enum.TextXAlignment.Left
 StatsUpdated.Parent = StatsPopup
 
 
@@ -712,8 +680,10 @@ trackConnection(
             return
         end
 
+
         local delta =
             input.Position - dragStart
+
 
         Main.Position =
             UDim2.new(
@@ -740,6 +710,7 @@ local function createToggle(
 
     local Button =
         Instance.new("TextButton")
+
 
     Button.Size =
         UDim2.new(1, -30, 0, 45)
@@ -932,10 +903,7 @@ PopupTitle.TextColor3 =
 
 PopupTitle.TextSize = 18
 PopupTitle.Font = Enum.Font.GothamBold
-
-PopupTitle.TextXAlignment =
-    Enum.TextXAlignment.Left
-
+PopupTitle.TextXAlignment = Enum.TextXAlignment.Left
 PopupTitle.Parent = EggPopup
 
 
@@ -1053,6 +1021,7 @@ for _, eggName in ipairs(Eggs) do
     local EggButton =
         Instance.new("TextButton")
 
+
     EggButton.Size =
         UDim2.new(1, -10, 0, 38)
 
@@ -1089,6 +1058,7 @@ for _, eggName in ipairs(Eggs) do
         SelectedEgg =
             eggName
 
+
         SelectedLabel.Text =
             "Selected: " .. eggName
 
@@ -1118,7 +1088,11 @@ end
 
 
 EggButtons["Basic"].BackgroundColor3 =
-    Color3.fromRGB(55, 150, 75)
+    Color3.fromRGB(
+        55,
+        150,
+        75
+    )
 
 
 --// =========================================================
@@ -1167,6 +1141,7 @@ AutoHatchButton.MouseButton1Click:Connect(function()
                 75
             )
 
+
         HatchButton.Text =
             "Hatch Eggs: ON  ▼"
 
@@ -1189,6 +1164,7 @@ AutoHatchButton.MouseButton1Click:Connect(function()
                 55
             )
 
+
         HatchButton.Text =
             "Hatch Eggs  ▼"
 
@@ -1209,6 +1185,7 @@ HatchButton.MouseButton1Click:Connect(function()
     EggPopup.Visible =
         not EggPopup.Visible
 
+
     if EggPopup.Visible then
         StatsPopup.Visible = false
     end
@@ -1217,14 +1194,26 @@ end)
 
 
 --// =========================================================
---// QUEST TABLE SEARCH
+--// QUEST / DATA HELPERS
 --// =========================================================
+
+local function normalize(value)
+
+    return string.lower(
+        tostring(value)
+    ):gsub(
+        "[^%w]",
+        ""
+    )
+end
+
 
 local function looksLikeQuestList(tbl)
 
     if type(tbl) ~= "table" then
         return false
     end
+
 
     local found = 0
 
@@ -1287,6 +1276,7 @@ local function findQuestList(
                     visited
                 )
 
+
             if result then
                 return result
             end
@@ -1299,10 +1289,6 @@ local function findQuestList(
     return nil
 end
 
-
---// =========================================================
---// STAT SEARCH
---// =========================================================
 
 local function findStat(
     tbl,
@@ -1337,6 +1323,7 @@ local function findStat(
                 tbl[statName]
             )
 
+
         if value ~= nil then
             return value
         end
@@ -1355,6 +1342,7 @@ local function findStat(
                     depth + 1,
                     visited
                 )
+
 
             if result ~= nil then
                 return result
@@ -1401,7 +1389,7 @@ local function getReplica(id)
 end
 
 
-local function searchReplicaBatch()
+local function searchQuestReplicaBatch()
 
     if QuestReplica
         and QuestReplica.Data then
@@ -1468,7 +1456,7 @@ local function searchReplicaBatch()
 
 
                 print(
-                    "[Auto Farm] Quest/Profile replica:",
+                    "[Auto Farm] Profile replica:",
                     id
                 )
 
@@ -1486,7 +1474,9 @@ local function searchReplicaBatch()
 end
 
 
-local function ensureQuestReplica(fullSearch)
+local function ensureQuestReplica(
+    fullSearch
+)
 
     if QuestReplica
         and QuestReplica.Data then
@@ -1501,12 +1491,12 @@ local function ensureQuestReplica(fullSearch)
 
     for _ = 1, batches do
 
-        local result =
-            searchReplicaBatch()
+        local replica =
+            searchQuestReplicaBatch()
 
 
-        if result then
-            return result
+        if replica then
+            return replica
         end
 
 
@@ -1546,7 +1536,7 @@ local function getCurrentQuests()
     end
 
 
-    searchReplicaBatch()
+    searchQuestReplicaBatch()
 
 
     return CachedQuestList
@@ -1574,19 +1564,11 @@ end
 
 
 --// =========================================================
---// AUTO BOOST SYSTEM V2
+--// BOOST REPLICA DISCOVERY
+--//
+--// We keep ALL replicas containing boost/item names.
+--// Inventory and active boost timers may be separate.
 --// =========================================================
-
-local function normalize(value)
-
-    return string.lower(
-        tostring(value)
-    ):gsub(
-        "[^%w]",
-        ""
-    )
-end
-
 
 local BoostLookup = {}
 
@@ -1601,14 +1583,11 @@ for _, boostName in ipairs(
 end
 
 
---// =========================================================
---// FIND BOOST REPLICA
---// =========================================================
+local BoostReplicas = {}
+local BoostReplicaIds = {}
 
-local BoostReplica = nil
-
-local BoostReplicaCursor = 1
-local BoostReplicaSearchFinished = false
+local BoostSearchCursor = 1
+local BoostSearchComplete = false
 
 
 local function containsBoostData(
@@ -1677,47 +1656,34 @@ end
 
 local function searchBoostReplicaBatch()
 
-    if BoostReplica
-        and BoostReplica.Data then
-
-        return BoostReplica
-    end
-
-
-    if BoostReplicaSearchFinished then
-        return nil
+    if BoostSearchComplete then
+        return
     end
 
 
     for _ = 1, 100 do
 
         local id =
-            BoostReplicaCursor
+            BoostSearchCursor
 
 
-        BoostReplicaCursor += 1
+        BoostSearchCursor += 1
 
 
         if id > 5000 then
 
-            BoostReplicaSearchFinished =
+            BoostSearchComplete =
                 true
 
             break
         end
 
 
-        local success, replica =
-            pcall(function()
-
-                return ReplicaController
-                    .GetReplicaById(id)
-
-            end)
+        local replica =
+            getReplica(id)
 
 
-        if success
-            and replica
+        if replica
             and replica.Data
             and containsBoostData(
                 replica.Data,
@@ -1725,82 +1691,70 @@ local function searchBoostReplicaBatch()
                 {}
             ) then
 
-            BoostReplica =
-                replica
+
+            if not BoostReplicaIds[id] then
+
+                BoostReplicaIds[id] =
+                    true
 
 
-            print(
-                "[Auto Boosts] Boost replica found:",
-                id
-            )
+                table.insert(
+                    BoostReplicas,
+                    replica
+                )
 
 
-            return replica
+                print(
+                    "[Auto Boosts] Data replica:",
+                    id
+                )
+
+            end
 
         end
 
     end
 
-
-    return nil
 end
 
 
-local function ensureBoostReplica()
+local function ensureBoostReplicaScan()
 
-    if BoostReplica
-        and BoostReplica.Data then
-
-        return BoostReplica
+    if BoostSearchComplete then
+        return
     end
 
 
     for _ = 1, 50 do
 
-        local result =
-            searchBoostReplicaBatch()
-
-
-        if result then
-            return result
-        end
-
-
-        if BoostReplicaSearchFinished then
+        if BoostSearchComplete then
             break
         end
+
+
+        searchBoostReplicaBatch()
 
 
         task.wait(0.02)
 
     end
 
-
-    -- Fallback
-    if QuestReplica
-        and QuestReplica.Data then
-
-        return QuestReplica
-    end
-
-
-    return nil
 end
 
 
 --// =========================================================
---// INVENTORY / ACTIVE PATH WORDS
+--// BOOST INVENTORY DETECTION
 --// =========================================================
 
 local InventoryWords = {
     "inventory",
     "iteminventory",
     "items",
-    "potions",
-    "fruits",
     "consumables",
     "storage",
-    "owned"
+    "owned",
+    "fruits",
+    "potions"
 }
 
 
@@ -1856,10 +1810,6 @@ local function pathContains(
     return false
 end
 
-
---// =========================================================
---// FIND OWNED AMOUNT
---// =========================================================
 
 local AmountFields = {
     "Amount",
@@ -1927,8 +1877,7 @@ local function findOwnedAmount(
                 normalize(key)
 
 
-            -- Example:
-            -- Inventory.DiamondApple = 6
+            -- Inventory.Item = 5
             if keyNormalized == target then
 
                 local number =
@@ -1945,7 +1894,7 @@ local function findOwnedAmount(
                         InventoryWords
                     ) then
 
-                        score += 25
+                        score += 30
                     end
 
 
@@ -1954,7 +1903,7 @@ local function findOwnedAmount(
                         ActiveWords
                     ) then
 
-                        score -= 50
+                        score -= 100
                     end
 
 
@@ -1968,8 +1917,7 @@ local function findOwnedAmount(
                 end
 
 
-                -- Example:
-                -- DiamondApple.Amount = 6
+                -- Inventory.Item.Amount
                 if type(value) == "table" then
 
                     for _, field in ipairs(
@@ -1984,7 +1932,7 @@ local function findOwnedAmount(
 
                         if amount ~= nil then
 
-                            local score = 30
+                            local score = 35
 
 
                             if pathContains(
@@ -1992,7 +1940,7 @@ local function findOwnedAmount(
                                 ActiveWords
                             ) then
 
-                                score -= 50
+                                score -= 100
                             end
 
 
@@ -2013,13 +1961,6 @@ local function findOwnedAmount(
 
 
             if type(value) == "table" then
-
-                -- Example:
-                --
-                -- {
-                --     Name = "DiamondApple",
-                --     Amount = 5
-                -- }
 
                 local label =
                     value.Name
@@ -2045,7 +1986,7 @@ local function findOwnedAmount(
 
                         if amount ~= nil then
 
-                            local score = 35
+                            local score = 40
 
 
                             if pathContains(
@@ -2053,7 +1994,7 @@ local function findOwnedAmount(
                                 ActiveWords
                             ) then
 
-                                score -= 50
+                                score -= 100
                             end
 
 
@@ -2128,9 +2069,7 @@ local ActiveFields = {
 }
 
 
-local function valueIsActive(
-    value
-)
+local function valueIsActive(value)
 
     if type(value) == "boolean" then
         return value
@@ -2148,15 +2087,15 @@ local function valueIsActive(
             string.lower(value)
 
 
-        if lower == "true"
-            or lower == "active" then
+        if lower == "active"
+            or lower == "true" then
 
             return true
         end
 
 
-        if lower == "false"
-            or lower == "inactive" then
+        if lower == "inactive"
+            or lower == "false" then
 
             return false
         end
@@ -2221,6 +2160,8 @@ local function findActiveBoost(
                 normalize(key)
 
 
+            -- Only trust paths that actually look like
+            -- ACTIVE/TIMER data.
             if keyNormalized == target
                 and pathContains(
                     currentPath,
@@ -2231,9 +2172,7 @@ local function findActiveBoost(
                 if type(value) ~= "table" then
 
                     local state =
-                        valueIsActive(
-                            value
-                        )
+                        valueIsActive(value)
 
 
                     if state ~= nil then
@@ -2280,7 +2219,12 @@ local function findActiveBoost(
 
 
                 if label
-                    and normalize(label) == target then
+                    and normalize(label) == target
+                    and pathContains(
+                        currentPath,
+                        ActiveWords
+                    ) then
+
 
                     for _, field in ipairs(
                         ActiveFields
@@ -2337,81 +2281,86 @@ end
 
 
 --// =========================================================
---// GET BOOST INFO
+--// GET STRICT BOOST INFO
 --// =========================================================
 
 local function getBoostInfo(
     boostName
 )
 
-    local replica =
-        ensureBoostReplica()
+    local owned = nil
+
+    local foundActiveTrue = false
+    local foundActiveFalse = false
 
 
-    if not replica
-        or not replica.Data then
+    for _, replica in ipairs(
+        BoostReplicas
+    ) do
 
-        return nil, nil
-    end
-
-
-    local owned =
-        findOwnedAmount(
-            replica.Data,
-            boostName
-        )
+        if replica
+            and replica.Data then
 
 
-    local active =
-        findActiveBoost(
-            replica.Data,
-            boostName
-        )
+            local amount =
+                findOwnedAmount(
+                    replica.Data,
+                    boostName
+                )
 
 
-    return owned, active
-end
+            if amount ~= nil then
+
+                if owned == nil
+                    or amount > owned then
+
+                    owned = amount
+
+                end
+
+            end
 
 
---// =========================================================
---// LOCAL AUTO BOOST STATE
---// =========================================================
-
-local BoostUseState =
-    _G.__AUTO_FARM_BOOST_STATE_V2
-
-
-if not BoostUseState then
-
-    BoostUseState = {}
-
-    _G.__AUTO_FARM_BOOST_STATE_V2 =
-        BoostUseState
-
-end
+            local active =
+                findActiveBoost(
+                    replica.Data,
+                    boostName
+                )
 
 
-local function getLocalBoostState(
-    boostName
-)
+            if active == true then
 
-    if not BoostUseState[
-        boostName
-    ] then
+                foundActiveTrue =
+                    true
 
-        BoostUseState[
-            boostName
-        ] = {
-            RetryAt = 0,
-            AssumedActiveUntil = 0
-        }
+
+            elseif active == false then
+
+                foundActiveFalse =
+                    true
+
+            end
+
+        end
 
     end
 
 
-    return BoostUseState[
-        boostName
-    ]
+    -- ACTIVE=true always wins.
+    if foundActiveTrue then
+        return owned, true
+    end
+
+
+    -- Only say false if some trusted active/timer
+    -- field explicitly says false/0.
+    if foundActiveFalse then
+        return owned, false
+    end
+
+
+    -- Unknown.
+    return owned, nil
 end
 
 
@@ -2427,7 +2376,6 @@ if not SessionBaseline then
 
     SessionBaseline = {
         Initialized = false,
-
         Eggs = 0,
         Secrets = 0,
         Divines = 0
@@ -2451,9 +2399,7 @@ local function getStatFromCandidates(
     end
 
 
-    for _, statName in ipairs(
-        candidates
-    ) do
+    for _, statName in ipairs(candidates) do
 
         local value =
             findStat(
@@ -2619,7 +2565,7 @@ local function updateStats()
         getRawHatchStats()
 
 
-    local eggs =
+    local sessionEggs =
         math.max(
             0,
             (currentEggs or SessionBaseline.Eggs)
@@ -2627,7 +2573,7 @@ local function updateStats()
         )
 
 
-    local secrets =
+    local sessionSecrets =
         math.max(
             0,
             (currentSecrets or SessionBaseline.Secrets)
@@ -2635,7 +2581,7 @@ local function updateStats()
         )
 
 
-    local divines =
+    local sessionDivines =
         math.max(
             0,
             (currentDivines or SessionBaseline.Divines)
@@ -2645,17 +2591,17 @@ local function updateStats()
 
     EggsStat.Text =
         "Eggs: +" ..
-        formatNumber(eggs)
+        formatNumber(sessionEggs)
 
 
     SecretStat.Text =
         "Secrets: +" ..
-        formatNumber(secrets)
+        formatNumber(sessionSecrets)
 
 
     DivineStat.Text =
         "Divines: +" ..
-        formatNumber(divines)
+        formatNumber(sessionDivines)
 
 
     StatsUpdated.Text =
@@ -2671,7 +2617,8 @@ StatsButton.MouseButton1Click:Connect(function()
 
     if StatsPopup.Visible then
 
-        EggPopup.Visible = false
+        EggPopup.Visible =
+            false
 
 
         task.spawn(function()
@@ -2692,7 +2639,6 @@ end)
 --// =========================================================
 
 local QuestState = {
-
     Eggs = false,
 
     EternalHatch = false,
@@ -2712,13 +2658,8 @@ local QuestState = {
 
 local function clearQuestState()
 
-    for key in pairs(
-        QuestState
-    ) do
-
-        QuestState[key] =
-            false
-
+    for key in pairs(QuestState) do
+        QuestState[key] = false
     end
 
 end
@@ -2883,7 +2824,7 @@ local function updateQuestState()
     end
 
 
-    -- Requires 2+ unfinished aura quests
+    -- 2+ unfinished aura quests required
     QuestState.Auras =
         auraQuestCount >= 2
 end
@@ -2937,10 +2878,22 @@ end)
 
 
 --// =========================================================
---// AUTO BOOSTS V2
+--// STRICT AUTO BOOSTS
+--//
+--// ONLY:
+--//
+--// owned > 0
+--// AND
+--// active == false
+--//
+--// nil / unknown = NEVER USE
 --// =========================================================
 
 task.spawn(function()
+
+    local initialScanDone =
+        false
+
 
     while alive do
 
@@ -2955,7 +2908,22 @@ task.spawn(function()
         end
 
 
-        ensureBoostReplica()
+        -- Do the expensive search only once.
+        if not initialScanDone then
+
+            ensureBoostReplicaScan()
+
+            initialScanDone =
+                true
+
+
+            print(
+                "[Auto Boosts] Replica scan complete:",
+                #BoostReplicas,
+                "candidate replicas"
+            )
+
+        end
 
 
         for _, boostName in ipairs(
@@ -2969,16 +2937,6 @@ task.spawn(function()
             end
 
 
-            local state =
-                getLocalBoostState(
-                    boostName
-                )
-
-
-            local now =
-                os.clock()
-
-
             local owned,
                 active =
                 getBoostInfo(
@@ -2987,62 +2945,20 @@ task.spawn(function()
 
 
             -- ================================================
-            -- DEFINITELY DON'T OWN IT
+            -- STRICT RULE
             -- ================================================
 
             if owned ~= nil
-                and owned <= 0 then
-
-                state.AssumedActiveUntil =
-                    0
+                and owned > 0
+                and active == false then
 
 
-                state.RetryAt =
-                    now + 5
-
-
-            -- ================================================
-            -- ALREADY ACTIVE
-            -- ================================================
-
-            elseif active == true then
-
-                state.AssumedActiveUntil =
-                    0
-
-
-                state.RetryAt =
-                    0
-
-
-            -- ================================================
-            -- RECENTLY CONFIRMED AS USED
-            -- ================================================
-
-            elseif state.AssumedActiveUntil >
-                now then
-
-                -- Do nothing
-
-
-            -- ================================================
-            -- WAIT BEFORE RETRYING
-            -- ================================================
-
-            elseif state.RetryAt >
-                now then
-
-                -- Do nothing
-
-
-            -- ================================================
-            -- TRY TO USE ONE
-            -- ================================================
-
-            else
-
-                local beforeAmount =
+                print(
+                    "[Auto Boosts] INACTIVE -> USING:",
+                    boostName,
+                    "| Owned:",
                     owned
+                )
 
 
                 pcall(function()
@@ -3057,90 +2973,33 @@ task.spawn(function()
                 end)
 
 
-                -- Wait for inventory / boost data
-                -- to replicate back to client.
-                task.wait(0.35)
+                -- Wait for active state to replicate
+                -- before checking anything else.
+                task.wait(0.50)
 
 
-                local afterAmount,
-                    afterActive =
-                    getBoostInfo(
-                        boostName
-                    )
+            elseif active == true then
+
+                -- Already active.
+                -- NEVER use another.
 
 
-                -- ============================================
-                -- ACTIVE TIMER CONFIRMED
-                -- ============================================
+            elseif active == nil then
 
-                if afterActive == true then
-
-                    print(
-                        "[Auto Boosts] USED:",
-                        boostName
-                    )
+                -- We cannot prove it is inactive.
+                -- NEVER use.
 
 
-                    state.RetryAt =
-                        0
+            elseif owned == nil then
+
+                -- We cannot prove we own it.
+                -- NEVER use.
 
 
-                    state.AssumedActiveUntil =
-                        0
+            elseif owned <= 0 then
 
-
-                -- ============================================
-                -- INVENTORY WENT DOWN
-                -- ============================================
-
-                elseif beforeAmount ~= nil
-                    and afterAmount ~= nil
-                    and afterAmount < beforeAmount then
-
-                    print(
-                        "[Auto Boosts] USED:",
-                        boostName,
-                        "|",
-                        beforeAmount,
-                        "->",
-                        afterAmount
-                    )
-
-
-                    state.RetryAt =
-                        0
-
-
-                    state.AssumedActiveUntil =
-                        os.clock()
-                        + ASSUMED_ACTIVE_TIME
-
-
-                -- ============================================
-                -- COULD NOT CONFIRM
-                -- ============================================
-
-                else
-
-                    -- IMPORTANT:
-                    -- Missing/rejected items are NOT
-                    -- locked out for 5 minutes.
-                    state.RetryAt =
-                        os.clock()
-                        + FAILED_BOOST_RETRY
-
-
-                    if beforeAmount ~= nil
-                        and beforeAmount <= 0 then
-
-                        print(
-                            "[Auto Boosts] DON'T OWN:",
-                            boostName
-                        )
-
-                    end
-
-                end
+                -- Don't own any.
+                -- NEVER use.
 
             end
 
@@ -3628,7 +3487,9 @@ end)
 --// =========================================================
 --// QUEST AURAS
 --//
---// CONTINUOUS PRIORITY:
+--// Only with 2+ unfinished aura quests.
+--//
+--// Continuous:
 --//
 --// Basic
 --// Epic
@@ -3637,9 +3498,7 @@ end)
 --// Magma
 --// Galaxy
 --//
---// then back to Basic
---//
---// Only runs with 2+ unfinished aura quests.
+--// then Basic again
 --// =========================================================
 
 task.spawn(function()
