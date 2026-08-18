@@ -1,5 +1,5 @@
 --// =========================================================
---// CLEAN UP PREVIOUS VERSION
+--// CLEANUP OLD VERSION
 --// =========================================================
 
 if _G.__AUTO_FARM_CLEANUP then
@@ -82,7 +82,7 @@ local GuiMinimized = false
 
 
 --// =========================================================
---// CONNECTION HELPER
+--// CLEANUP
 --// =========================================================
 
 local function trackConnection(connection)
@@ -90,10 +90,6 @@ local function trackConnection(connection)
     return connection
 end
 
-
---// =========================================================
---// CLEANUP
---// =========================================================
 
 local function cleanup()
 
@@ -123,6 +119,7 @@ local function cleanup()
         _G.__AUTO_FARM_CLEANUP = nil
     end
 end
+
 
 _G.__AUTO_FARM_CLEANUP = cleanup
 
@@ -366,10 +363,8 @@ end
 
 local NORMAL_HATCH_DELAY = 0.10
 
--- Fish:InvokeServer() itself takes roughly 2 seconds.
--- This is the extra delay after each completed fish.
+-- Working standalone fishing loop:
 local AUTO_FISH_DELAY = 0.50
-local AUTO_FISH_FAIL_DELAY = 1
 
 local AUTO_TAP_DELAY = 0.02
 
@@ -410,9 +405,7 @@ end
 --// SCREEN GUI
 --// =========================================================
 
-ScreenGui =
-    Instance.new("ScreenGui")
-
+ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "AutoFarmGui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
@@ -599,7 +592,8 @@ local StatsButtonCorner =
 StatsButtonCorner.CornerRadius =
     UDim.new(0, 6)
 
-StatsButtonCorner.Parent = StatsButton
+StatsButtonCorner.Parent =
+    StatsButton
 
 
 --// =========================================================
@@ -653,7 +647,8 @@ local MinimizeCorner =
 MinimizeCorner.CornerRadius =
     UDim.new(0, 6)
 
-MinimizeCorner.Parent = MinimizeButton
+MinimizeCorner.Parent =
+    MinimizeButton
 
 
 --// =========================================================
@@ -697,7 +692,8 @@ local StatsPopupCorner =
 StatsPopupCorner.CornerRadius =
     UDim.new(0, 10)
 
-StatsPopupCorner.Parent = StatsPopup
+StatsPopupCorner.Parent =
+    StatsPopup
 
 
 local StatsTitle =
@@ -948,10 +944,11 @@ trackConnection(
 
 
 --// =========================================================
---// TOGGLE CREATOR
+--// TOGGLE BUTTON CREATOR
 --// =========================================================
 
 local ToggleButtons = {}
+
 
 local function updateToggleVisual(
     button,
@@ -1041,7 +1038,8 @@ local function createToggle(
     corner.CornerRadius =
         UDim.new(0, 8)
 
-    corner.Parent = button
+    corner.Parent =
+        button
 
 
     ToggleButtons[setting] = {
@@ -1069,7 +1067,7 @@ end
 
 
 --// =========================================================
---// MAIN BUTTONS
+--// BUTTONS
 --// =========================================================
 
 createToggle(
@@ -1292,9 +1290,7 @@ PopupClose.Parent = EggPopup
 
 
 PopupClose.MouseButton1Click:Connect(function()
-
     EggPopup.Visible = false
-
 end)
 
 
@@ -1621,7 +1617,7 @@ end)
 
 
 --// =========================================================
---// MINIMIZE / EXPAND
+--// MINIMIZE
 --// =========================================================
 
 local function setGuiMinimized(state)
@@ -1629,7 +1625,7 @@ local function setGuiMinimized(state)
     GuiMinimized = state
 
 
-    if GuiMinimized then
+    if state then
 
         EggPopup.Visible = false
         StatsPopup.Visible = false
@@ -1643,7 +1639,6 @@ local function setGuiMinimized(state)
                 and child ~= TitleBar then
 
                 child.Visible = false
-
             end
 
         end
@@ -1671,7 +1666,6 @@ local function setGuiMinimized(state)
                 and child ~= StatsPopup then
 
                 child.Visible = true
-
             end
 
         end
@@ -1728,7 +1722,6 @@ local function looksLikeQuestList(tbl)
             and value.endAmount ~= nil then
 
             found += 1
-
         end
 
     end
@@ -1849,7 +1842,7 @@ end
 
 
 --// =========================================================
---// PLAYER REPLICA
+--// REPLICA
 --// =========================================================
 
 local QuestReplica = nil
@@ -1912,7 +1905,6 @@ local function searchQuestReplicaBatch()
 
         local id =
             ReplicaSearchCursor
-
 
         ReplicaSearchCursor += 1
 
@@ -2085,7 +2077,7 @@ end
 
 
 --// =========================================================
---// ACTIVE BOOST SEARCH
+--// ACTIVE POTION SEARCH
 --// =========================================================
 
 local function findActivePotionEndsAt(
@@ -2141,7 +2133,6 @@ local function findActivePotionEndsAt(
 
                     bestEndsAt =
                         endsAt
-
                 end
 
             end
@@ -2169,7 +2160,6 @@ local function findActivePotionEndsAt(
 
                     bestEndsAt =
                         result
-
                 end
 
             end
@@ -2259,7 +2249,7 @@ end
 
 
 --// =========================================================
---// BOOST LOCKS
+--// BOOST LOCK
 --// =========================================================
 
 local BoostUseLocks = {}
@@ -2273,7 +2263,6 @@ local function boostLocked(
         BoostUseLocks[
             itemName
         ]
-
 
     return untilTime ~= nil
         and os.clock() <
@@ -2293,14 +2282,17 @@ end
 
 
 --// =========================================================
---// AUTO BOOST USE
+--// AUTO BOOST
 --// =========================================================
 
 local function useOnlyIfInactive(
     itemName
 )
 
-    if boostLocked(itemName) then
+    if boostLocked(
+        itemName
+    ) then
+
         return false
     end
 
@@ -2392,7 +2384,7 @@ end
 
 
 --// =========================================================
---// CRATE OPENER
+--// CRATE
 --// =========================================================
 
 local function openCrate(
@@ -2452,10 +2444,8 @@ if not SessionBaseline then
         Divines = 0
     }
 
-
     _G.__AUTO_FARM_SESSION_BASELINE =
         SessionBaseline
-
 end
 
 
@@ -2628,48 +2618,36 @@ local function updateStats()
         getRawHatchStats()
 
 
-    local sessionEggs =
-        math.max(
-            0,
-            (eggs or SessionBaseline.Eggs)
-            - SessionBaseline.Eggs
-        )
-
-
-    local sessionSecrets =
-        math.max(
-            0,
-            (secrets or SessionBaseline.Secrets)
-            - SessionBaseline.Secrets
-        )
-
-
-    local sessionDivines =
-        math.max(
-            0,
-            (divines or SessionBaseline.Divines)
-            - SessionBaseline.Divines
-        )
-
-
     EggsStat.Text =
         "Eggs: +" ..
         formatNumber(
-            sessionEggs
+            math.max(
+                0,
+                (eggs or SessionBaseline.Eggs)
+                - SessionBaseline.Eggs
+            )
         )
 
 
     SecretStat.Text =
         "Secrets: +" ..
         formatNumber(
-            sessionSecrets
+            math.max(
+                0,
+                (secrets or SessionBaseline.Secrets)
+                - SessionBaseline.Secrets
+            )
         )
 
 
     DivineStat.Text =
         "Divines: +" ..
         formatNumber(
-            sessionDivines
+            math.max(
+                0,
+                (divines or SessionBaseline.Divines)
+                - SessionBaseline.Divines
+            )
         )
 
 
@@ -2691,16 +2669,11 @@ StatsButton.MouseButton1Click:Connect(function()
 
     if StatsPopup.Visible then
 
-        EggPopup.Visible =
-            false
+        EggPopup.Visible = false
 
 
         task.spawn(function()
-
-            pcall(
-                updateStats
-            )
-
+            pcall(updateStats)
         end)
 
     end
@@ -2738,7 +2711,6 @@ local function clearQuestState()
     ) do
 
         QuestState[key] = false
-
     end
 
 end
@@ -3122,7 +3094,9 @@ end)
 --// =========================================================
 --// NORMAL AUTO HATCH
 --//
---// Pauses whenever Auto Quests is enabled.
+--// PAUSES DURING:
+--// - Auto Quests
+--// - AutoFish
 --// =========================================================
 
 task.spawn(function()
@@ -3130,7 +3104,8 @@ task.spawn(function()
     while alive do
 
         if not Settings.Hatch
-            or Settings.AutoQuests then
+            or Settings.AutoQuests
+            or Settings.AutoFish then
 
             task.wait(
                 IDLE_DELAY
@@ -3162,97 +3137,38 @@ end)
 
 
 --// =========================================================
---// AUTOFISH - FIXED STATE VERSION
+--// AUTO FISH
+--//
+--// THIS IS THE SAME MINIMAL LOOP
+--// THAT GAVE YOU PETS + COINS.
+--//
+--// Stand inside the fishing area.
 --// =========================================================
 
-local EquipRodRemote =
-    Events:WaitForChild("EquipRod")
-
-local FishRemote =
-    Functions:WaitForChild("Fish")
-
-
 task.spawn(function()
-
-    local rodEnabled = false
 
     while alive do
 
         if not Settings.AutoFish then
 
-            if rodEnabled then
-
-                pcall(function()
-
-                    EquipRodRemote:FireServer(
-                        false,
-                        "1"
-                    )
-
-                end)
-
-                rodEnabled = false
-            end
-
-            task.wait(0.5)
-            continue
-        end
-
-
-        -- Enable fishing state once
-        if not rodEnabled then
-
-            pcall(function()
-
-                EquipRodRemote:FireServer(
-                    true,
-                    "1"
-                )
-
-            end)
-
-            rodEnabled = true
-
-            -- Your logger showed roughly a 2 second
-            -- delay between EquipRod and Fish.
-            task.wait(2.25)
+            task.wait(
+                IDLE_DELAY
+            )
 
             continue
         end
 
 
-        local success,
-            caught,
-            fishData =
-            pcall(function()
+        pcall(function()
 
-                return FishRemote:InvokeServer()
+            FishRemote:InvokeServer()
 
-            end)
+        end)
 
 
-        if success and caught == true then
-
-            -- Fish remote itself takes about 2 sec
-            task.wait(0.5)
-
-        else
-
-            -- Reset fishing state if server rejects it
-            rodEnabled = false
-
-            pcall(function()
-
-                EquipRodRemote:FireServer(
-                    false,
-                    "1"
-                )
-
-            end)
-
-            task.wait(0.75)
-
-        end
+        task.wait(
+            AUTO_FISH_DELAY
+        )
 
     end
 
@@ -3305,7 +3221,6 @@ task.spawn(function()
 
             clearQuestState()
 
-
             task.wait(
                 IDLE_DELAY
             )
@@ -3331,9 +3246,16 @@ end)
 --// =========================================================
 --// QUEST HATCH
 --//
---// Secret  -> Basic
---// Eternal -> City
---// Other   -> Magic
+--// IMPORTANT FIX:
+--//
+--// 1. Pauses completely while AutoFish is ON.
+--//
+--// 2. Does NOT hatch Magic continuously anymore.
+--//
+--// Secret quest  -> Basic
+--// Eternal quest -> City
+--// Egg quest     -> Magic
+--// No egg quest  -> DON'T HATCH
 --// =========================================================
 
 task.spawn(function()
@@ -3350,7 +3272,18 @@ task.spawn(function()
         end
 
 
-        local egg
+        -- Fishing gets priority.
+        if Settings.AutoFish then
+
+            task.wait(
+                0.5
+            )
+
+            continue
+        end
+
+
+        local egg = nil
 
 
         if QuestState.SecretHatch then
@@ -3365,11 +3298,22 @@ task.spawn(function()
                 ETERNAL_EGG
 
 
-        else
+        elseif QuestState.Eggs then
 
             egg =
                 NORMAL_EGG
 
+        end
+
+
+        -- No hatch-related quest.
+        if not egg then
+
+            task.wait(
+                0.5
+            )
+
+            continue
         end
 
 
@@ -3435,7 +3379,6 @@ task.spawn(function()
             #BoostItems then
 
             BoostIndex = 1
-
         end
 
 
@@ -3489,7 +3432,6 @@ task.spawn(function()
             #PotionItems then
 
             PotionIndex = 1
-
         end
 
 
@@ -3543,7 +3485,6 @@ task.spawn(function()
             #FruitItems then
 
             FruitIndex = 1
-
         end
 
 
