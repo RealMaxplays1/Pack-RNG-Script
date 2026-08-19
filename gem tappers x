@@ -77,7 +77,6 @@ local Settings = {
 local alive = true
 local Connections = {}
 local ScreenGui
-
 local GuiMinimized = false
 
 
@@ -119,7 +118,6 @@ local function cleanup()
         _G.__AUTO_FARM_CLEANUP = nil
     end
 end
-
 
 _G.__AUTO_FARM_CLEANUP = cleanup
 
@@ -363,10 +361,7 @@ end
 --// =========================================================
 
 local NORMAL_HATCH_DELAY = 0.10
-
--- Working standalone fishing loop:
 local AUTO_FISH_DELAY = 0.50
-
 local AUTO_TAP_DELAY = 0.02
 
 local QUEST_HATCH_DELAY = 0.15
@@ -403,7 +398,7 @@ end
 
 
 --// =========================================================
---// SCREEN GUI
+--// GUI
 --// =========================================================
 
 ScreenGui = Instance.new("ScreenGui")
@@ -412,28 +407,13 @@ ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = PlayerGui
 
 
---// =========================================================
---// MAIN FRAME
---// =========================================================
-
-local Main =
-    Instance.new("Frame")
+local Main = Instance.new("Frame")
 
 local ExpandedSize =
-    UDim2.new(
-        0,
-        260,
-        0,
-        450
-    )
+    UDim2.new(0, 260, 0, 450)
 
 local MinimizedSize =
-    UDim2.new(
-        0,
-        260,
-        0,
-        40
-    )
+    UDim2.new(0, 260, 0, 40)
 
 Main.Size = ExpandedSize
 
@@ -475,12 +455,7 @@ local TitleBar =
     Instance.new("Frame")
 
 TitleBar.Size =
-    UDim2.new(
-        1,
-        0,
-        0,
-        40
-    )
+    UDim2.new(1, 0, 0, 40)
 
 TitleBar.BackgroundColor3 =
     Color3.fromRGB(
@@ -501,10 +476,6 @@ TitleCorner.CornerRadius =
 
 TitleCorner.Parent = TitleBar
 
-
---// =========================================================
---// TITLE
---// =========================================================
 
 local Title =
     Instance.new("TextLabel")
@@ -701,20 +672,10 @@ local StatsTitle =
     Instance.new("TextLabel")
 
 StatsTitle.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        32
-    )
+    UDim2.new(1, -20, 0, 32)
 
 StatsTitle.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        5
-    )
+    UDim2.new(0, 10, 0, 5)
 
 StatsTitle.BackgroundTransparency = 1
 StatsTitle.Text = "Session Hatch Stats"
@@ -736,20 +697,10 @@ local EggsStat =
     Instance.new("TextLabel")
 
 EggsStat.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        26
-    )
+    UDim2.new(1, -20, 0, 26)
 
 EggsStat.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        43
-    )
+    UDim2.new(0, 10, 0, 43)
 
 EggsStat.BackgroundTransparency = 1
 EggsStat.Text = "Eggs: Loading..."
@@ -771,20 +722,10 @@ local SecretStat =
     Instance.new("TextLabel")
 
 SecretStat.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        26
-    )
+    UDim2.new(1, -20, 0, 26)
 
 SecretStat.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        71
-    )
+    UDim2.new(0, 10, 0, 71)
 
 SecretStat.BackgroundTransparency = 1
 SecretStat.Text = "Secrets: Loading..."
@@ -806,20 +747,10 @@ local DivineStat =
     Instance.new("TextLabel")
 
 DivineStat.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        26
-    )
+    UDim2.new(1, -20, 0, 26)
 
 DivineStat.Position =
-    UDim2.new(
-        0,
-        10,
-        0,
-        99
-    )
+    UDim2.new(0, 10, 0, 99)
 
 DivineStat.BackgroundTransparency = 1
 DivineStat.Text = "Divines: Loading..."
@@ -841,12 +772,7 @@ local StatsUpdated =
     Instance.new("TextLabel")
 
 StatsUpdated.Size =
-    UDim2.new(
-        1,
-        -20,
-        0,
-        25
-    )
+    UDim2.new(1, -20, 0, 25)
 
 StatsUpdated.Position =
     UDim2.new(
@@ -1039,8 +965,7 @@ local function createToggle(
     corner.CornerRadius =
         UDim.new(0, 8)
 
-    corner.Parent =
-        button
+    corner.Parent = button
 
 
     ToggleButtons[setting] = {
@@ -1068,7 +993,7 @@ end
 
 
 --// =========================================================
---// BUTTONS
+--// MAIN BUTTONS
 --// =========================================================
 
 createToggle(
@@ -1139,10 +1064,6 @@ HatchCorner.CornerRadius =
 HatchCorner.Parent =
     HatchButton
 
-
---// =========================================================
---// BUTTONS BELOW HATCH
---// =========================================================
 
 createToggle(
     "AutoFish",
@@ -1625,12 +1546,10 @@ local function setGuiMinimized(state)
 
     GuiMinimized = state
 
-
     if state then
 
         EggPopup.Visible = false
         StatsPopup.Visible = false
-
 
         for _, child in ipairs(
             Main:GetChildren()
@@ -1644,7 +1563,6 @@ local function setGuiMinimized(state)
 
         end
 
-
         Main.Size =
             MinimizedSize
 
@@ -1655,7 +1573,6 @@ local function setGuiMinimized(state)
 
         Main.Size =
             ExpandedSize
-
 
         for _, child in ipairs(
             Main:GetChildren()
@@ -1670,7 +1587,6 @@ local function setGuiMinimized(state)
             end
 
         end
-
 
         EggPopup.Visible = false
         StatsPopup.Visible = false
@@ -1752,11 +1668,9 @@ local function findQuestList(
 
     visited[tbl] = true
 
-
     if looksLikeQuestList(tbl) then
         return tbl
     end
-
 
     for _, value in pairs(tbl) do
 
@@ -1864,7 +1778,6 @@ local function getReplica(id)
                 .GetReplicaById(id)
 
         end)
-
 
     if success then
         return replica
@@ -2345,8 +2258,6 @@ end
 
 --// =========================================================
 --// QUEST ITEM USE
---//
---// ACTIVE STATUS DOES NOT MATTER
 --// =========================================================
 
 local function useItemForQuest(
@@ -3094,10 +3005,6 @@ end)
 
 --// =========================================================
 --// NORMAL AUTO HATCH
---//
---// PAUSES DURING:
---// - Auto Quests
---// - AutoFish
 --// =========================================================
 
 task.spawn(function()
@@ -3139,11 +3046,6 @@ end)
 
 --// =========================================================
 --// AUTO FISH
---//
---// THIS IS THE SAME MINIMAL LOOP
---// THAT GAVE YOU PETS + COINS.
---//
---// Stand inside the fishing area.
 --// =========================================================
 
 task.spawn(function()
@@ -3247,16 +3149,11 @@ end)
 --// =========================================================
 --// QUEST HATCH
 --//
---// IMPORTANT FIX:
---//
---// 1. Pauses completely while AutoFish is ON.
---//
---// 2. Does NOT hatch Magic continuously anymore.
---//
---// Secret quest  -> Basic
---// Eternal quest -> City
---// Egg quest     -> Magic
---// No egg quest  -> DON'T HATCH
+--// Secret -> Basic
+--// Eternal -> City
+--// Eggs -> Magic
+--// None -> no hatch
+--// Paused while AutoFish ON
 --// =========================================================
 
 task.spawn(function()
@@ -3273,12 +3170,9 @@ task.spawn(function()
         end
 
 
-        -- Fishing gets priority.
         if Settings.AutoFish then
 
-            task.wait(
-                0.5
-            )
+            task.wait(0.5)
 
             continue
         end
@@ -3307,12 +3201,9 @@ task.spawn(function()
         end
 
 
-        -- No hatch-related quest.
         if not egg then
 
-            task.wait(
-                0.5
-            )
+            task.wait(0.5)
 
             continue
         end
@@ -3558,10 +3449,6 @@ end)
 
 --// =========================================================
 --// QUEST CRATES
---//
---// ONLY:
---// fruitsBox
---// potionsBox
 --// =========================================================
 
 task.spawn(function()
@@ -3607,9 +3494,7 @@ task.spawn(function()
         end
 
 
-        task.wait(
-            0.10
-        )
+        task.wait(0.10)
 
     end
 
