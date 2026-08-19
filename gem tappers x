@@ -165,7 +165,8 @@ local Eggs = {
     "Forest",
     "Void",
     "Ancient",
-    "Magic"
+    "Magic",
+    "Hell"
 }
 
 local SECRET_EGG = "Basic"
